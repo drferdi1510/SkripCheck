@@ -315,6 +315,59 @@ input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%
 }
 .btn-modal-close:hover{background:var(--surface2)}
 
+/* ===== MSK NAV TABS ===== */
+.msk-nav{display:flex;gap:4px;background:var(--surface2);border-radius:var(--radius-sm);padding:4px;margin-bottom:16px}
+.msk-tab{flex:1;padding:10px 16px;border:none;background:transparent;color:var(--text3);font-family:var(--font-body);font-size:14px;border-radius:6px;cursor:pointer;transition:all 0.22s;display:flex;align-items:center;justify-content:center;gap:7px}
+.msk-tab.active{background:var(--surface);color:var(--text);font-weight:500;border:0.5px solid var(--border2)}
+.msk-tab:hover:not(.active){color:var(--text2);background:rgba(99,130,255,0.05)}
+.msk-sub-panel{animation:fadeIn 0.25s ease}
+
+/* ===== WORD COUNT PANEL ===== */
+.wc-info-bar{
+  display:flex;align-items:flex-start;gap:10px;
+  background:rgba(99,130,255,0.07);border:0.5px solid var(--border2);
+  border-radius:var(--radius-sm);padding:12px 14px;margin-bottom:16px;
+  font-size:13px;color:var(--text2);line-height:1.6;
+}
+.wc-info-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+.wc-total-card{
+  background:linear-gradient(135deg,rgba(99,130,255,0.12),rgba(167,139,250,0.08));
+  border:0.5px solid var(--border2);border-radius:var(--radius);
+  padding:24px 22px;margin-bottom:14px;text-align:center;
+}
+.wc-total-label{font-size:11px;font-family:var(--font-mono);color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px}
+.wc-total-val{font-family:var(--font-head);font-size:52px;color:var(--accent);line-height:1}
+.wc-total-sub{font-size:12px;color:var(--text3);font-family:var(--font-mono);margin-top:6px}
+.wc-sections{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.wc-sec-item{
+  background:var(--surface);border:0.5px solid var(--border);
+  border-radius:var(--radius-sm);padding:12px 16px;
+  display:flex;align-items:center;gap:12px;
+}
+.wc-sec-icon{font-size:18px;flex-shrink:0}
+.wc-sec-info{flex:1}
+.wc-sec-name{font-size:13px;font-weight:500;margin-bottom:2px}
+.wc-sec-range{font-size:11px;color:var(--text3);font-family:var(--font-mono)}
+.wc-sec-right{text-align:right;flex-shrink:0}
+.wc-sec-val{font-family:var(--font-head);font-size:20px}
+.wc-sec-pct{font-size:10px;color:var(--text3);font-family:var(--font-mono)}
+.wc-sec-bar-wrap{height:3px;background:var(--surface2);border-radius:99px;margin-top:4px;overflow:hidden}
+.wc-sec-bar{height:100%;border-radius:99px;background:var(--accent);transition:width 0.8s cubic-bezier(0.34,1.2,0.64,1)}
+.wc-status-ok{color:var(--safe)}
+.wc-status-warn{color:var(--warn)}
+.wc-status-over{color:var(--danger)}
+.wc-excluded-wrap{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--radius-sm);padding:14px 16px}
+.wc-excl-title{font-size:10px;font-family:var(--font-mono);color:var(--text3);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:10px}
+.wc-excluded{display:flex;flex-wrap:wrap;gap:8px}
+.wc-excl-item{
+  display:flex;align-items:center;gap:8px;
+  background:var(--surface2);border:0.5px solid var(--border);
+  border-radius:var(--radius-sm);padding:8px 12px;
+}
+.wc-excl-name{font-size:12px;color:var(--text3)}
+.wc-excl-val{font-size:13px;font-weight:500;font-family:var(--font-mono);color:var(--text2)}
+.wc-not-found{font-size:12px;color:var(--text3);font-style:italic;padding:4px 0}
+
 /* ===== FOOTER ===== */
 footer{text-align:center;padding-top:28px;font-size:11px;color:var(--text3);font-family:var(--font-mono);letter-spacing:0.05em;border-top:0.5px solid var(--border);margin-top:8px;line-height:2}
 
@@ -477,18 +530,22 @@ footer{text-align:center;padding-top:28px;font-size:11px;color:var(--text3);font
 
   <!-- ===== PANEL MANUSKRIP ===== -->
   <div class="main-panel" id="panel-manuskrip">
+
+    <!-- Upload Area -->
     <div class="upload-area" id="upload-area"
       ondragover="onDrag(event,true)" ondragleave="onDrag(event,false)" ondrop="onDrop(event)">
       <input type="file" id="file-input" accept=".doc,.docx,.pdf" onchange="onFileSelect(event)">
       <div class="upload-icon">📁</div>
       <div class="upload-title" data-id="upload-title">Unggah Manuskrip</div>
-      <div class="upload-sub" data-id="upload-sub">Seret &amp; lepas file di sini, atau klik untuk memilih.<br>Teks akan diekstrak otomatis (maks. 300 kata pertama).</div>
+      <div class="upload-sub" data-id="upload-sub">Seret &amp; lepas file di sini, atau klik untuk memilih.<br>Mendukung analisis AI penuh tanpa batas kata.</div>
       <div class="fmt-row">
         <span class="fmt-badge">.PDF</span>
         <span class="fmt-badge">.DOC</span>
         <span class="fmt-badge">.DOCX</span>
       </div>
     </div>
+
+    <!-- File Card -->
     <div class="file-card" id="file-card">
       <div class="file-icon-big" id="fi-icon">📄</div>
       <div class="file-info">
@@ -497,59 +554,97 @@ footer{text-align:center;padding-top:28px;font-size:11px;color:var(--text3);font
       </div>
       <button class="btn-file-rm" onclick="removeFile()" data-id="file-rm">✕ Hapus</button>
     </div>
-    <div class="input-card" id="msk-text-card" style="display:none">
-      <div class="input-label" data-id="extracted-lbl">Teks Terekstrak (300 kata pertama)</div>
-      <textarea id="msk-input" style="min-height:130px" readonly></textarea>
-      <div class="btn-row" style="margin-top:14px">
-        <button class="btn-primary" id="btn-analyze-m" onclick="analyze('manuskrip')" data-id="analyze-msk-btn">Analisis Manuskrip</button>
+
+    <!-- Manuskrip Sub-tabs: Analisis AI | Hitung Kata -->
+    <div id="msk-tabs-wrap" style="display:none">
+      <div class="msk-nav">
+        <button class="msk-tab active" id="msktab-ai" onclick="switchMskTab('ai')">🤖 <span data-id="msktab-ai-lbl">Analisis AI</span></button>
+        <button class="msk-tab" id="msktab-wc" onclick="switchMskTab('wc')">📊 <span data-id="msktab-wc-lbl">Hitung Kata</span></button>
       </div>
-    </div>
-    <div class="loading-box" id="load-manuskrip">
-      <div class="spinner"></div>
-      <div class="loading-msg"><span data-id="analyzing">Menganalisis</span><span class="loading-dots"></span></div>
-    </div>
-    <div class="result-section" id="res-manuskrip">
-      <div class="gauge-card">
-        <div class="gauge-wrap">
-          <svg viewBox="0 0 130 130" width="130" height="130">
-            <circle class="gauge-bg" cx="65" cy="65" r="52" fill="none" stroke-width="10"/>
-            <circle class="gauge-fill" id="gf-m" cx="65" cy="65" r="52" fill="none" stroke-width="10"
-              stroke-dasharray="326.73" stroke-dashoffset="326.73" transform="rotate(-90 65 65)"/>
-            <text class="gauge-val" id="gv-m" x="65" y="60">0%</text>
-            <text class="gauge-lbl" x="65" y="79">AI Score</text>
-          </svg>
-        </div>
-        <div class="gauge-info">
-          <div class="verdict-badge" id="vb-m">—</div>
-          <div class="verdict-title" id="vt-m">—</div>
-          <div class="verdict-desc" id="vd-m">—</div>
-        </div>
-      </div>
-      <div class="stats-row">
-        <div class="stat-card"><div class="stat-label" data-id="stat-words">Jumlah Kata</div><div class="stat-val" id="sw-m">—</div></div>
-        <div class="stat-card"><div class="stat-label" data-id="stat-ai">Kalimat AI</div><div class="stat-val" id="sa-m">—</div></div>
-        <div class="stat-card"><div class="stat-label" data-id="stat-perp">Perplexity</div><div class="stat-val" id="sp-m">—</div></div>
-      </div>
-      <div class="hl-card">
-        <div class="sub-tabs">
-          <button class="sub-tab active" onclick="switchSub('m','hl')" data-id="tab-hl">Highlight Analisis</button>
-          <button class="sub-tab" onclick="switchSub('m','para')" data-id="tab-para">Saran Parafrasa</button>
-        </div>
-        <div class="sub-content active" id="sc-m-hl">
-          <div class="section-lbl" data-id="hl-lbl">Analisis per kalimat</div>
-          <div class="hl-text" id="hl-m"></div>
-          <div class="legend">
-            <div class="leg-item"><div class="leg-dot ai"></div><span data-id="leg-ai">Terindikasi AI</span></div>
-            <div class="leg-item"><div class="leg-dot mixed"></div><span data-id="leg-mix">Tidak Pasti</span></div>
-            <div class="leg-item"><div class="leg-dot human"></div><span data-id="leg-hum">Human-written</span></div>
+
+      <!-- ---- SUB PANEL: ANALISIS AI ---- -->
+      <div id="msk-panel-ai" class="msk-sub-panel active">
+        <div class="input-card" id="msk-text-card">
+          <div class="input-label" data-id="extracted-lbl">Teks Terekstrak (full manuskrip)</div>
+          <textarea id="msk-input" style="min-height:160px" readonly></textarea>
+          <div class="input-meta" style="margin-top:8px">
+            <span class="wc-text" id="msk-wc-total">0 kata</span>
+          </div>
+          <div class="btn-row" style="margin-top:14px">
+            <button class="btn-primary" id="btn-analyze-m" onclick="analyze('manuskrip')" data-id="analyze-msk-btn">Analisis Manuskrip</button>
           </div>
         </div>
-        <div class="sub-content" id="sc-m-para">
-          <div class="section-lbl" data-id="para-lbl">Saran humanisasi kalimat berindikasi AI</div>
-          <div class="para-list" id="pl-m"></div>
+
+        <div class="loading-box" id="load-manuskrip">
+          <div class="spinner"></div>
+          <div class="loading-msg"><span data-id="analyzing">Menganalisis</span><span class="loading-dots"></span></div>
         </div>
-      </div>
-    </div>
+
+        <div class="result-section" id="res-manuskrip">
+          <div class="gauge-card">
+            <div class="gauge-wrap">
+              <svg viewBox="0 0 130 130" width="130" height="130">
+                <circle class="gauge-bg" cx="65" cy="65" r="52" fill="none" stroke-width="10"/>
+                <circle class="gauge-fill" id="gf-m" cx="65" cy="65" r="52" fill="none" stroke-width="10"
+                  stroke-dasharray="326.73" stroke-dashoffset="326.73" transform="rotate(-90 65 65)"/>
+                <text class="gauge-val" id="gv-m" x="65" y="60">0%</text>
+                <text class="gauge-lbl" x="65" y="79">AI Score</text>
+              </svg>
+            </div>
+            <div class="gauge-info">
+              <div class="verdict-badge" id="vb-m">—</div>
+              <div class="verdict-title" id="vt-m">—</div>
+              <div class="verdict-desc" id="vd-m">—</div>
+            </div>
+          </div>
+          <div class="stats-row">
+            <div class="stat-card"><div class="stat-label" data-id="stat-words">Jumlah Kata</div><div class="stat-val" id="sw-m">—</div></div>
+            <div class="stat-card"><div class="stat-label" data-id="stat-ai">Kalimat AI</div><div class="stat-val" id="sa-m">—</div></div>
+            <div class="stat-card"><div class="stat-label" data-id="stat-perp">Perplexity</div><div class="stat-val" id="sp-m">—</div></div>
+          </div>
+          <div class="hl-card">
+            <div class="sub-tabs">
+              <button class="sub-tab active" onclick="switchSub('m','hl')" data-id="tab-hl">Highlight Analisis</button>
+              <button class="sub-tab" onclick="switchSub('m','para')" data-id="tab-para">Saran Parafrasa</button>
+            </div>
+            <div class="sub-content active" id="sc-m-hl">
+              <div class="section-lbl" data-id="hl-lbl">Analisis per kalimat</div>
+              <div class="hl-text" id="hl-m"></div>
+              <div class="legend">
+                <div class="leg-item"><div class="leg-dot ai"></div><span data-id="leg-ai">Terindikasi AI</span></div>
+                <div class="leg-item"><div class="leg-dot mixed"></div><span data-id="leg-mix">Tidak Pasti</span></div>
+                <div class="leg-item"><div class="leg-dot human"></div><span data-id="leg-hum">Human-written</span></div>
+              </div>
+            </div>
+            <div class="sub-content" id="sc-m-para">
+              <div class="section-lbl" data-id="para-lbl">Saran humanisasi kalimat berindikasi AI</div>
+              <div class="para-list" id="pl-m"></div>
+            </div>
+          </div>
+        </div>
+      </div><!-- end msk-panel-ai -->
+
+      <!-- ---- SUB PANEL: HITUNG KATA ---- -->
+      <div id="msk-panel-wc" class="msk-sub-panel" style="display:none">
+        <div class="wc-info-bar">
+          <span class="wc-info-icon">ℹ</span>
+          <span data-id="wc-info">Kata dihitung per section. Acknowledgement, References, Appendix, dan Conflict of Interest dikecualikan dari total.</span>
+        </div>
+        <div id="wc-result-area">
+          <div class="wc-total-card">
+            <div class="wc-total-label" data-id="wc-total-lbl">Total Kata (Excl. non-content)</div>
+            <div class="wc-total-val" id="wc-grand-total">—</div>
+            <div class="wc-total-sub" id="wc-grand-sub">—</div>
+          </div>
+          <div class="wc-sections" id="wc-sections-list"></div>
+          <div class="wc-excluded-wrap">
+            <div class="wc-excl-title" data-id="wc-excl-title">Section Dikecualikan</div>
+            <div class="wc-excluded" id="wc-excluded-list"></div>
+          </div>
+        </div>
+      </div><!-- end msk-panel-wc -->
+
+    </div><!-- end msk-tabs-wrap -->
   </div>
 
   <!-- ===== PANEL TENTANG ===== -->
@@ -638,7 +733,13 @@ const L = {
     'err-over':'Teks melebihi 300 kata. Harap kurangi terlebih dahulu.',
     'err-api':'Gagal menghubungi Groq API. Periksa API key Anda.',
     'err-file':'Format file tidak didukung atau gagal dibaca.',
-    'err-key':'API Key tidak boleh kosong.'
+    'err-key':'API Key tidak boleh kosong.',
+    'msktab-ai-lbl':'Analisis AI',
+    'msktab-wc-lbl':'Hitung Kata',
+    'wc-info':'Kata dihitung per section. Acknowledgement, References, Appendix, dan Conflict of Interest dikecualikan dari total.',
+    'wc-total-lbl':'Total Kata (Excl. non-content)',
+    'wc-excl-title':'Section Dikecualikan',
+    'wc-not-detected':'Tidak terdeteksi dalam dokumen'
   },
   en:{
     'lock-sub':'Enter your Groq API Key to get started. The key is only stored in your browser and never sent anywhere except Groq.',
@@ -671,7 +772,13 @@ const L = {
     'err-over':'Text exceeds 300 words. Please reduce before analyzing.',
     'err-api':'Failed to reach Groq API. Please check your API key.',
     'err-file':'Unsupported file format or failed to read.',
-    'err-key':'API Key cannot be empty.'
+    'err-key':'API Key cannot be empty.',
+    'msktab-ai-lbl':'AI Analysis',
+    'msktab-wc-lbl':'Word Count',
+    'wc-info':'Words are counted per section. Acknowledgement, References, Appendix, and Conflict of Interest are excluded from the total.',
+    'wc-total-lbl':'Total Words (Excl. non-content)',
+    'wc-excl-title':'Excluded Sections',
+    'wc-not-detected':'Not detected in document'
   }
 };
 
@@ -754,6 +861,14 @@ function switchMain(panel){
 }
 
 /* ===== SUB TABS ===== */
+function switchMskTab(tab){
+  document.querySelectorAll('.msk-tab').forEach((el,i)=>{
+    el.classList.toggle('active',(i===0&&tab==='ai')||(i===1&&tab==='wc'));
+  });
+  document.getElementById('msk-panel-ai').style.display=tab==='ai'?'block':'none';
+  document.getElementById('msk-panel-wc').style.display=tab==='wc'?'block':'none';
+}
+
 function switchSub(mode,tab){
   const tabs=document.querySelectorAll('#panel-'+(mode==='t'?'teks':'manuskrip')+' .sub-tab');
   tabs.forEach((el,i)=>el.classList.toggle('active',(i===0&&tab==='hl')||(i===1&&tab==='para')));
@@ -803,10 +918,13 @@ function onFileSelect(e){
 }
 function removeFile(){
   document.getElementById('file-card').classList.remove('show');
-  document.getElementById('msk-text-card').style.display='none';
+  document.getElementById('msk-tabs-wrap').style.display='none';
   document.getElementById('res-manuskrip').classList.remove('show');
   document.getElementById('file-input').value='';
+  fullMskText='';
 }
+let fullMskText = '';
+
 async function processFile(file){
   const ext=file.name.split('.').pop().toLowerCase();
   if(!['doc','docx','pdf'].includes(ext)){alert(t('err-file'));return;}
@@ -814,15 +932,19 @@ async function processFile(file){
   document.getElementById('fi-name').textContent=file.name;
   document.getElementById('fi-meta').textContent=ext.toUpperCase()+' · '+(file.size/1024).toFixed(1)+' KB';
   document.getElementById('file-card').classList.add('show');
-  document.getElementById('msk-text-card').style.display='none';
   document.getElementById('res-manuskrip').classList.remove('show');
+  document.getElementById('msk-tabs-wrap').style.display='none';
   try{
     let text='';
     if(ext==='pdf') text=await extractPDF(file);
     else text=await extractDOCX(file);
-    const words=text.trim().split(/\s+/);
-    document.getElementById('msk-input').value=words.slice(0,300).join(' ');
-    document.getElementById('msk-text-card').style.display='block';
+    fullMskText=text.trim();
+    const wc=fullMskText?fullMskText.split(/\s+/).length:0;
+    document.getElementById('msk-input').value=fullMskText;
+    document.getElementById('msk-wc-total').textContent=wc.toLocaleString()+' '+(currentLang==='id'?'kata total':'words total');
+    document.getElementById('msk-tabs-wrap').style.display='block';
+    // Auto run word count
+    runWordCount(fullMskText);
   }catch(e){alert(t('err-file'));}
 }
 async function extractPDF(file){
@@ -911,6 +1033,10 @@ async function analyze(mode){
   const wc=text?text.split(/\s+/).length:0;
   if(wc<50){alert(t('err-short'));return;}
   if(mode==='teks'&&wc>300){alert(t('err-over'));return;}
+  // For manuskrip, use first 2000 words for AI analysis (API token limit)
+  const analyzeText=mode==='manuskrip'&&wc>2000
+    ?text.split(/\s+/).slice(0,2000).join(' ')
+    :text;
 
   const apiKey=getKey();
   if(!apiKey){alert(t('err-key'));resetKey();return;}
@@ -943,7 +1069,7 @@ Rules:
 - Split text into individual sentences properly
 
 TEXT TO ANALYZE:
-${text}`;
+${analyzeText}`;
 
   try{
     const res=await fetch(GROQ_ENDPOINT,{
@@ -992,6 +1118,153 @@ ${text}`;
   }
   busy=false;
   document.getElementById(btnId).disabled=false;
+}
+
+// ===== WORD COUNT ENGINE =====
+function runWordCount(text){
+  const SECTIONS_INCLUDED = [
+    {key:'abstract',    icon:'📋', name:{id:'Abstrak',en:'Abstract'},           hint:{id:'150–300 kata',en:'150–300 words'},  min:150,max:300},
+    {key:'intro',       icon:'📖', name:{id:'Introduction / Pendahuluan',en:'Introduction'},   hint:{id:'300–600 kata',en:'300–600 words'},  min:300,max:600},
+    {key:'methods',     icon:'🔬', name:{id:'Methods / Metode',en:'Methods / Materials'},     hint:{id:'400–800 kata',en:'400–800 words'},  min:400,max:800},
+    {key:'results',     icon:'📊', name:{id:'Results / Hasil',en:'Results'},       hint:{id:'400–800 kata',en:'400–800 words'},  min:400,max:800},
+    {key:'discussion',  icon:'💬', name:{id:'Discussion / Pembahasan',en:'Discussion'},   hint:{id:'400–800 kata',en:'400–800 words'},  min:400,max:800},
+    {key:'conclusion',  icon:'✅', name:{id:'Conclusion / Kesimpulan',en:'Conclusion'},   hint:{id:'100–250 kata',en:'100–250 words'},  min:100,max:250},
+  ];
+
+  const SECTIONS_EXCLUDED = [
+    {key:'acknowledgement', icon:'🙏', name:{id:'Acknowledgement',en:'Acknowledgement'},
+      patterns:[/acknowledgem[ae]nt/i,/ucapan terima kasih/i,/kata pengantar/i]},
+    {key:'references',      icon:'📚', name:{id:'References / Daftar Pustaka',en:'References'},
+      patterns:[/^references$/im,/^daftar pustaka$/im,/^bibliography$/im]},
+    {key:'appendix',        icon:'📎', name:{id:'Appendix / Lampiran',en:'Appendix'},
+      patterns:[/^appendix/im,/^lampiran/im,/^supplement/im]},
+    {key:'coi',             icon:'⚖', name:{id:'Conflict of Interest',en:'Conflict of Interest'},
+      patterns:[/conflict of interest/i,/competing interest/i,/disclosure/i]},
+    {key:'funding',         icon:'💰', name:{id:'Funding / Pendanaan',en:'Funding'},
+      patterns:[/^funding$/im,/^financial support$/im,/sumber pendanaan/i]},
+    {key:'authorcontrib',   icon:'👥', name:{id:'Author Contributions',en:'Author Contributions'},
+      patterns:[/author contribution/i,/kontribusi penulis/i]},
+  ];
+
+  // Section boundary patterns (INCLUDED)
+  const INCLUDED_PATTERNS = {
+    abstract:   [/^abstract$/im,/^abstrak$/im,/^ringkasan$/im],
+    intro:      [/^introduction$/im,/^pendahuluan$/im,/^latar belakang$/im,/^background$/im],
+    methods:    [/^(materials? and )?methods?$/im,/^metode(?: penelitian)?$/im,/^methodology$/im,/^bahan dan metode/im],
+    results:    [/^results?$/im,/^hasil$/im,/^findings?$/im,/^temuan$/im],
+    discussion: [/^discussion$/im,/^pembahasan$/im,/^diskusi$/im],
+    conclusion: [/^conclusions?$/im,/^kesimpulan$/im,/^summary$/im,/^ringkasan$/im],
+  };
+
+  // Build all section patterns (included + excluded)
+  const allPatterns = [];
+  for(const [key, pats] of Object.entries(INCLUDED_PATTERNS)){
+    for(const pat of pats) allPatterns.push({key, pat, type:'included'});
+  }
+  for(const sec of SECTIONS_EXCLUDED){
+    for(const pat of sec.patterns) allPatterns.push({key:sec.key, pat, type:'excluded'});
+  }
+
+  // Find section positions in text
+  const found = [];
+  for(const {key, pat, type} of allPatterns){
+    let m;
+    const re = new RegExp(pat.source, pat.flags);
+    while((m = re.exec(text)) !== null){
+      // Only accept if it looks like a heading (short line)
+      const lineStart = text.lastIndexOf('\n', m.index)+1;
+      const lineEnd = text.indexOf('\n', m.index);
+      const line = text.slice(lineStart, lineEnd<0?undefined:lineEnd).trim();
+      if(line.split(/\s+/).length <= 6){
+        found.push({key, type, index:m.index, match:m[0]});
+        break; // one per section
+      }
+    }
+  }
+
+  // Sort by position
+  found.sort((a,b)=>a.index-b.index);
+
+  // Extract text between sections
+  const sectionTexts = {};
+  for(let i=0;i<found.length;i++){
+    const start = text.indexOf('\n', found[i].index);
+    const end = i+1<found.length ? found[i+1].index : text.length;
+    sectionTexts[found[i].key] = text.slice(start<0?found[i].index:start, end).trim();
+  }
+
+  function countWords(str){
+    if(!str || !str.trim()) return 0;
+    return str.trim().split(/\s+/).filter(w=>w.length>0).length;
+  }
+
+  // Count included sections
+  let grandTotal = 0;
+  const includedResults = SECTIONS_INCLUDED.map(sec=>{
+    const txt = sectionTexts[sec.key] || '';
+    const wc = countWords(txt);
+    grandTotal += wc;
+    return {...sec, wc, detected: !!sectionTexts[sec.key]};
+  });
+
+  // Count excluded sections
+  const excludedResults = SECTIONS_EXCLUDED.map(sec=>{
+    const txt = sectionTexts[sec.key] || '';
+    const wc = countWords(txt);
+    return {...sec, wc, detected: !!sectionTexts[sec.key]};
+  });
+
+  // Total word count of whole doc
+  const totalAll = countWords(text);
+  const excludedTotal = excludedResults.reduce((s,r)=>s+r.wc,0);
+
+  // Render grand total
+  document.getElementById('wc-grand-total').textContent = grandTotal.toLocaleString();
+  const lang = currentLang;
+  const sub = lang==='id'
+    ? `${totalAll.toLocaleString()} kata keseluruhan · ${excludedTotal.toLocaleString()} kata dikecualikan`
+    : `${totalAll.toLocaleString()} words total · ${excludedTotal.toLocaleString()} words excluded`;
+  document.getElementById('wc-grand-sub').textContent = sub;
+
+  // Render sections
+  const secList = document.getElementById('wc-sections-list');
+  secList.innerHTML = includedResults.map(sec=>{
+    const pct = grandTotal>0?Math.round((sec.wc/grandTotal)*100):0;
+    let statusClass='';
+    let statusLabel='';
+    if(sec.detected){
+      if(sec.wc<sec.min){statusClass='wc-status-warn';statusLabel=lang==='id'?'⚠ Kurang':'⚠ Below';}
+      else if(sec.wc>sec.max){statusClass='wc-status-over';statusLabel=lang==='id'?'⚠ Panjang':'⚠ Long';}
+      else{statusClass='wc-status-ok';statusLabel=lang==='id'?'✓ Ideal':'✓ Ideal';}
+    }
+    const notDetected = lang==='id'?'Tidak terdeteksi':'Not detected';
+    return \`<div class="wc-sec-item">
+      <div class="wc-sec-icon">\${sec.icon}</div>
+      <div class="wc-sec-info">
+        <div class="wc-sec-name">\${sec.name[lang]}</div>
+        <div class="wc-sec-range">\${sec.hint[lang]}</div>
+        <div class="wc-sec-bar-wrap"><div class="wc-sec-bar" style="width:\${Math.min(100,pct)}%"></div></div>
+      </div>
+      <div class="wc-sec-right">
+        <div class="wc-sec-val \${statusClass}">\${sec.detected?sec.wc.toLocaleString():'-'}</div>
+        <div class="wc-sec-pct">\${sec.detected?pct+'% · '+statusLabel:notDetected}</div>
+      </div>
+    </div>\`;
+  }).join('');
+
+  // Render excluded
+  const exclList = document.getElementById('wc-excluded-list');
+  const detectedExcl = excludedResults.filter(s=>s.detected);
+  if(detectedExcl.length===0){
+    exclList.innerHTML = \`<div class="wc-not-found">\${lang==='id'?'Tidak terdeteksi dalam dokumen':'Not detected in document'}</div>\`;
+  } else {
+    exclList.innerHTML = detectedExcl.map(sec=>\`
+      <div class="wc-excl-item">
+        <span>\${sec.icon}</span>
+        <span class="wc-excl-name">\${sec.name[lang]}</span>
+        <span class="wc-excl-val">\${sec.wc.toLocaleString()}</span>
+      </div>\`).join('');
+  }
 }
 
 applyLang();
