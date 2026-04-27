@@ -1,0 +1,1623 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0a0e1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="SkripCheck">
+<meta name="description" content="SkripCheck — AI Content Detector untuk karya ilmiah">
+<title>SkripCheck v.0.2.0</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap">
+<style>
+/* ═══════════════════════════════════════
+   BASE
+═══════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0e1a;--s1:#111827;--s2:#1a2438;--s3:#212d45;
+  --b1:rgba(99,130,255,.14);--b2:rgba(99,130,255,.28);
+  --ac:#6382ff;--ac2:#a78bfa;
+  --tx:#e8eaf6;--tx2:#8b9ec7;--tx3:#566080;
+  --ok:#34d399;--wn:#fbbf24;--er:#f87171;
+  --fh:'DM Serif Display',serif;
+  --fb:'Outfit',sans-serif;
+  --fm:'DM Mono',monospace;
+  --r:14px;--rs:8px;
+}
+body{background:var(--bg);color:var(--tx);font-family:var(--fb);min-height:100vh;overflow-x:hidden}
+.orb{position:fixed;border-radius:50%;pointer-events:none;z-index:0;filter:blur(100px);opacity:.09}
+.orb1{width:480px;height:480px;background:#5b75f0;top:-140px;left:-110px}
+.orb2{width:320px;height:320px;background:#9f7aea;bottom:-70px;right:-90px}
+
+/* ═══════════════════════════════════════
+   LOCK SCREEN
+═══════════════════════════════════════ */
+#lock{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;background:var(--bg);padding:20px}
+#lock.gone{display:none}
+.lk{width:100%;max-width:400px;background:var(--s1);border:1px solid var(--b2);border-radius:20px;padding:38px 30px;text-align:center;animation:fadeUp .4s ease}
+.lk-logo{width:68px;height:68px;margin:0 auto 16px;border-radius:16px;overflow:hidden}
+.lk-logo img{width:100%;height:100%;object-fit:contain}
+.lk-h{font-family:var(--fh);font-size:24px;margin-bottom:5px}
+.lk-p{font-size:13px;color:var(--tx2);line-height:1.6;margin-bottom:22px}
+.f-lbl{font-size:10px;font-family:var(--fm);color:var(--tx3);letter-spacing:.1em;text-transform:uppercase;text-align:left;margin-bottom:6px}
+.f-wrap{position:relative;margin-bottom:5px}
+.f-inp{width:100%;padding:11px 40px 11px 13px;background:var(--s2);border:1px solid var(--b2);border-radius:var(--rs);color:var(--tx);font-family:var(--fm);font-size:13px;outline:none;transition:border-color .2s}
+.f-inp:focus{border-color:var(--ac)}
+.f-inp::placeholder{color:var(--tx3);font-family:var(--fb);font-size:13px}
+.f-eye{position:absolute;right:11px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--tx3);cursor:pointer;font-size:15px}
+.f-eye:hover{color:var(--tx2)}
+.f-err{font-size:11px;color:var(--er);text-align:left;margin-bottom:9px;display:none}
+.f-err.on{display:block}
+.f-hint{font-size:12px;color:var(--tx3);line-height:1.6;margin-bottom:16px;text-align:left}
+.f-hint a{color:var(--ac);text-decoration:none}
+.f-hint a:hover{text-decoration:underline}
+.btn-main{width:100%;padding:12px;background:linear-gradient(135deg,var(--ac),var(--ac2));border:none;border-radius:var(--rs);color:#fff;font-family:var(--fb);font-size:14px;font-weight:500;cursor:pointer;transition:opacity .2s,transform .15s}
+.btn-main:hover{opacity:.88;transform:translateY(-1px)}
+.btn-main:active{transform:translateY(0)}
+.lk-foot{margin-top:14px;font-size:11px;color:var(--tx3);display:flex;align-items:center;justify-content:center;gap:5px}
+.lk-dot{width:5px;height:5px;border-radius:50%;background:var(--ok)}
+
+/* ═══════════════════════════════════════
+   MODAL
+═══════════════════════════════════════ */
+.modal-bg{position:fixed;inset:0;z-index:150;background:rgba(10,14,26,.82);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:20px}
+.modal-bg.on{display:flex}
+.modal{width:100%;max-width:370px;background:var(--s1);border:1px solid var(--b2);border-radius:18px;padding:26px 22px;animation:fadeUp .28s ease}
+.modal h3{font-family:var(--fh);font-size:19px;margin-bottom:4px}
+.modal p{font-size:12px;color:var(--tx2);margin-bottom:13px}
+.modal-preview{background:var(--s2);border:1px solid var(--b1);border-radius:var(--rs);padding:9px 13px;font-family:var(--fm);font-size:12px;color:var(--tx3);word-break:break-all;margin-bottom:14px}
+.modal-btns{display:flex;flex-direction:column;gap:7px}
+.btn-danger{padding:11px;background:rgba(248,113,113,.1);border:1px solid rgba(248,113,113,.28);border-radius:var(--rs);color:var(--er);font-family:var(--fb);font-size:13px;cursor:pointer;transition:background .2s}
+.btn-danger:hover{background:rgba(248,113,113,.2)}
+.btn-ghost{padding:11px;background:transparent;border:1px solid var(--b2);border-radius:var(--rs);color:var(--tx2);font-family:var(--fb);font-size:13px;cursor:pointer;transition:background .2s}
+.btn-ghost:hover{background:var(--s2)}
+
+/* ═══════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════ */
+.app{position:relative;z-index:1;max-width:920px;margin:0 auto;padding:22px 18px 80px}
+header{display:flex;align-items:center;justify-content:space-between;padding-bottom:20px;border-bottom:1px solid var(--b1);margin-bottom:24px}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-ico{width:34px;height:34px;border-radius:8px;overflow:hidden}
+.logo-ico img{width:100%;height:100%;object-fit:contain}
+.logo-nm{font-family:var(--fh);font-size:19px}
+.logo-vr{font-size:10px;color:var(--tx3);font-family:var(--fm);letter-spacing:.06em;margin-top:1px}
+.hdr-r{display:flex;align-items:center;gap:7px}
+.lang-tgl{display:flex;background:var(--s1);border:1px solid var(--b1);border-radius:99px;padding:3px;gap:2px}
+.lang-btn{padding:4px 11px;border-radius:99px;border:none;cursor:pointer;font-family:var(--fb);font-size:11px;font-weight:500;color:var(--tx3);background:transparent;transition:all .2s}
+.lang-btn.on{background:var(--ac);color:#fff}
+.ico-btn{width:31px;height:31px;border-radius:50%;background:var(--s1);border:1px solid var(--b1);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--tx3);font-size:14px;transition:all .2s}
+.ico-btn:hover{color:var(--tx);border-color:var(--b2)}
+
+/* Hero */
+.hero{text-align:center;margin-bottom:24px}
+.hero h1{font-family:var(--fh);font-size:32px;line-height:1.15;margin-bottom:8px}
+.hero h1 em{color:var(--ac);font-style:italic}
+.hero p{font-size:14px;color:var(--tx2);max-width:460px;margin:0 auto;line-height:1.7}
+
+/* Nav */
+.nav{display:flex;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:4px;gap:3px;margin-bottom:18px}
+.nav-btn{flex:1;padding:9px 12px;border:none;background:transparent;color:var(--tx3);font-family:var(--fb);font-size:13px;border-radius:var(--rs);cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:6px}
+.nav-btn.on{background:var(--s2);color:var(--tx);font-weight:500;border:1px solid var(--b2)}
+.nav-btn:hover:not(.on){color:var(--tx2);background:rgba(99,130,255,.05)}
+.panel{display:none}
+.panel.on{display:block;animation:fadeIn .26s ease}
+
+/* Card */
+.card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:18px;margin-bottom:16px}
+.lbl{font-size:10px;font-family:var(--fm);color:var(--tx3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+textarea{width:100%;background:var(--s2);border:1px solid var(--b1);border-radius:var(--rs);color:var(--tx);font-family:var(--fb);font-size:14px;line-height:1.75;padding:12px 14px;resize:vertical;outline:none;transition:border-color .2s}
+textarea:focus{border-color:var(--ac)}
+textarea::placeholder{color:var(--tx3)}
+.meta-row{display:flex;justify-content:space-between;align-items:center;margin-top:8px;flex-wrap:wrap;gap:5px}
+.wc-wrap{display:flex;align-items:center;gap:8px}
+.wc-txt{font-size:12px;color:var(--tx3);font-family:var(--fm)}
+.wc-bar{width:76px;height:3px;background:var(--s3);border-radius:99px;overflow:hidden}
+.wc-fill{height:100%;background:var(--ac);border-radius:99px;transition:width .28s,background .28s;width:0}
+.msg-warn{font-size:11px;color:var(--wn);display:none}
+.msg-over{font-size:11px;color:var(--er);display:none}
+.btn-row{display:flex;gap:8px;margin-top:12px}
+.btn-p{flex:1;padding:11px 16px;background:var(--ac);border:none;border-radius:var(--rs);color:#fff;font-family:var(--fb);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-p:hover{background:#7b96ff;transform:translateY(-1px)}
+.btn-p:active{transform:translateY(0)}
+.btn-p:disabled{opacity:.38;cursor:not-allowed;transform:none}
+.btn-s{padding:11px 14px;background:transparent;border:1px solid var(--b2);border-radius:var(--rs);color:var(--tx2);font-family:var(--fb);font-size:13px;cursor:pointer;transition:background .2s}
+.btn-s:hover{background:var(--s2)}
+
+/* Upload */
+.upload-z{background:var(--s1);border:1.5px dashed var(--b2);border-radius:var(--r);padding:44px 22px;text-align:center;cursor:pointer;transition:all .2s;margin-bottom:14px;position:relative}
+.upload-z:hover,.upload-z.drag{border-color:var(--ac);background:rgba(99,130,255,.04)}
+.upload-z input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%}
+.upload-ico{font-size:36px;margin-bottom:11px}
+.upload-h{font-family:var(--fh);font-size:19px;margin-bottom:6px}
+.upload-p{font-size:13px;color:var(--tx2);margin-bottom:14px;line-height:1.6}
+.fmt-row{display:flex;gap:6px;justify-content:center}
+.fmt{padding:3px 11px;border-radius:99px;font-size:11px;font-family:var(--fm);background:var(--s2);border:1px solid var(--b2);color:var(--tx2)}
+
+.file-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:14px 16px;margin-bottom:13px;display:none;align-items:center;gap:12px}
+.file-card.on{display:flex}
+.fc-ico{font-size:26px;flex-shrink:0}
+.fc-info{flex:1}
+.fc-name{font-size:13px;font-weight:500;margin-bottom:2px;word-break:break-all}
+.fc-meta{font-size:11px;color:var(--tx3);font-family:var(--fm)}
+.btn-rm{background:transparent;border:1px solid var(--b2);border-radius:5px;color:var(--tx3);font-size:11px;padding:5px 9px;cursor:pointer;white-space:nowrap;transition:all .2s}
+.btn-rm:hover{color:var(--er);border-color:var(--er)}
+
+/* Msk sub nav */
+.msk-nav{display:flex;gap:3px;background:var(--s2);border-radius:var(--rs);padding:3px;margin-bottom:14px}
+.msk-tab{flex:1;padding:8px 12px;border:none;background:transparent;color:var(--tx3);font-family:var(--fb);font-size:13px;border-radius:6px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:5px}
+.msk-tab.on{background:var(--s1);color:var(--tx);font-weight:500;border:1px solid var(--b2)}
+.msk-tab:hover:not(.on){color:var(--tx2);background:rgba(99,130,255,.05)}
+.msk-pnl{display:none}
+.msk-pnl.on{display:block;animation:fadeIn .24s ease}
+
+/* ═══════════════════════════════════════
+   PROGRESS (Section-by-section analysis)
+═══════════════════════════════════════ */
+.prog-wrap{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:20px;margin-bottom:16px;display:none}
+.prog-wrap.on{display:block}
+.prog-title{font-family:var(--fh);font-size:17px;margin-bottom:14px}
+.prog-list{display:flex;flex-direction:column;gap:9px}
+.prog-item{display:flex;align-items:center;gap:11px;padding:10px 13px;background:var(--s2);border-radius:var(--rs);border:1px solid var(--b1);transition:border-color .3s}
+.prog-item.active{border-color:var(--ac)}
+.prog-item.done{border-color:rgba(52,211,153,.3)}
+.prog-item.err{border-color:rgba(248,113,113,.3)}
+.prog-icon{font-size:18px;flex-shrink:0;width:22px;text-align:center}
+.prog-name{flex:1;font-size:13px;font-weight:500}
+.prog-wc{font-size:11px;color:var(--tx3);font-family:var(--fm)}
+.prog-status{font-size:12px;font-family:var(--fm);color:var(--tx3);display:flex;align-items:center;gap:5px}
+.prog-spin{width:13px;height:13px;border:2px solid var(--s3);border-top-color:var(--ac);border-radius:50%;animation:spin .75s linear infinite;flex-shrink:0}
+.prog-bar-wrap{height:3px;background:var(--s3);border-radius:99px;margin-top:10px;overflow:hidden}
+.prog-bar{height:100%;background:linear-gradient(90deg,var(--ac),var(--ac2));border-radius:99px;transition:width .4s ease;width:0}
+.prog-summary{margin-top:14px;padding-top:13px;border-top:1px solid var(--b1);font-size:13px;color:var(--tx2)}
+
+/* Loader (simple) */
+.loader{display:none;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:36px;background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);margin-bottom:14px}
+.loader.on{display:flex}
+.spin{width:34px;height:34px;border:2px solid var(--s3);border-top-color:var(--ac);border-radius:50%;animation:spin .82s linear infinite}
+.loader-txt{font-size:13px;color:var(--tx2);font-family:var(--fm)}
+.dots::after{content:'...';animation:dots 1.4s infinite}
+
+/* ═══════════════════════════════════════
+   RESULT (Teks tab)
+═══════════════════════════════════════ */
+.result{display:none;animation:fadeIn .28s ease}
+.result.on{display:block}
+.gauge-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:24px 20px;margin-bottom:12px;display:flex;align-items:center;gap:24px}
+.gauge-wrap{width:114px;height:114px;flex-shrink:0}
+.g-bg{stroke:var(--s3)}
+.g-fill{stroke:var(--ac);stroke-linecap:round;transition:stroke-dashoffset 1.1s cubic-bezier(.34,1.2,.64,1),stroke .5s}
+.g-val{font-family:var(--fh);font-size:28px;fill:var(--tx);dominant-baseline:middle;text-anchor:middle}
+.g-lbl{font-family:var(--fm);font-size:10px;fill:var(--tx3);dominant-baseline:middle;text-anchor:middle}
+.g-info{flex:1}
+.vbadge{display:inline-flex;align-items:center;padding:4px 11px;border-radius:99px;font-size:10px;font-weight:500;letter-spacing:.05em;margin-bottom:8px;font-family:var(--fm);text-transform:uppercase}
+.vbadge.er{background:rgba(248,113,113,.11);color:var(--er);border:1px solid rgba(248,113,113,.24)}
+.vbadge.wn{background:rgba(251,191,36,.11);color:var(--wn);border:1px solid rgba(251,191,36,.24)}
+.vbadge.ok{background:rgba(52,211,153,.11);color:var(--ok);border:1px solid rgba(52,211,153,.24)}
+.v-title{font-family:var(--fh);font-size:19px;margin-bottom:5px}
+.v-desc{font-size:13px;color:var(--tx2);line-height:1.6}
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:12px}
+.stat{background:var(--s1);border:1px solid var(--b1);border-radius:var(--rs);padding:12px 14px}
+.stat-l{font-size:10px;font-family:var(--fm);color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px}
+.stat-v{font-size:19px;font-family:var(--fh)}
+.hl-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:16px 18px;margin-bottom:12px}
+.sub-tabs{display:flex;gap:3px;background:var(--s2);border-radius:var(--rs);padding:3px;margin-bottom:13px}
+.stab{flex:1;padding:7px 10px;border:none;background:transparent;color:var(--tx3);font-family:var(--fb);font-size:12px;border-radius:5px;cursor:pointer;transition:all .2s}
+.stab.on{background:var(--s1);color:var(--tx);font-weight:500}
+.scnt{display:none}
+.scnt.on{display:block}
+.slbl{font-size:10px;font-family:var(--fm);color:var(--tx3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:10px}
+.hl-txt{font-size:14px;line-height:2.1}
+.s-ai{background:rgba(248,113,113,.13);border-bottom:1.5px solid var(--er);border-radius:3px;padding:1px 3px}
+.s-hu{background:rgba(52,211,153,.08);border-bottom:1.5px solid var(--ok);border-radius:3px;padding:1px 3px}
+.s-mx{background:rgba(251,191,36,.08);border-bottom:1.5px solid var(--wn);border-radius:3px;padding:1px 3px}
+.legend{display:flex;gap:12px;margin-top:12px;flex-wrap:wrap}
+.leg{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--tx2)}
+.leg-d{width:9px;height:9px;border-radius:2px}
+.leg-d.ai{background:rgba(248,113,113,.5)}
+.leg-d.ok{background:rgba(52,211,153,.4)}
+.leg-d.mx{background:rgba(251,191,36,.4)}
+.para-list{display:flex;flex-direction:column;gap:10px}
+.para-item{background:var(--s2);border:1px solid var(--b1);border-radius:var(--rs);padding:12px 14px}
+.para-ol{font-size:10px;color:var(--tx3);font-family:var(--fm);letter-spacing:.07em;text-transform:uppercase;margin-bottom:4px}
+.para-ot{font-size:13px;line-height:1.7;color:var(--tx3)}
+.para-sl{font-size:10px;color:var(--ac);font-family:var(--fm);letter-spacing:.07em;text-transform:uppercase;margin:8px 0 4px}
+.para-st{font-size:13px;line-height:1.7;background:rgba(99,130,255,.06);border-radius:5px;padding:7px 10px;border:1px solid var(--b2)}
+.copy-btn{display:inline-flex;align-items:center;gap:4px;padding:4px 9px;background:var(--s1);border:1px solid var(--b2);border-radius:5px;color:var(--tx3);font-size:11px;font-family:var(--fm);cursor:pointer;margin-top:6px;transition:all .2s}
+.copy-btn:hover{color:var(--tx);border-color:var(--ac)}
+
+/* ═══════════════════════════════════════
+   WORD COUNT
+═══════════════════════════════════════ */
+.wc-info-bar{display:flex;align-items:flex-start;gap:8px;background:rgba(99,130,255,.06);border:1px solid var(--b2);border-radius:var(--rs);padding:10px 12px;margin-bottom:13px;font-size:13px;color:var(--tx2);line-height:1.6}
+.wc-total{background:linear-gradient(135deg,rgba(99,130,255,.1),rgba(167,139,250,.07));border:1px solid var(--b2);border-radius:var(--r);padding:20px;margin-bottom:12px;text-align:center}
+.wct-l{font-size:10px;font-family:var(--fm);color:var(--tx3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px}
+.wct-v{font-family:var(--fh);font-size:44px;color:var(--ac);line-height:1}
+.wct-s{font-size:12px;color:var(--tx3);font-family:var(--fm);margin-top:5px}
+.wc-secs{display:flex;flex-direction:column;gap:7px;margin-bottom:12px}
+.wc-sec{background:var(--s1);border:1px solid var(--b1);border-radius:var(--rs);padding:11px 13px;display:flex;align-items:center;gap:10px}
+.wcs-ico{font-size:15px;flex-shrink:0}
+.wcs-inf{flex:1}
+.wcs-nm{font-size:13px;font-weight:500;margin-bottom:2px}
+.wcs-rng{font-size:11px;color:var(--tx3);font-family:var(--fm)}
+.wcs-bar{height:2px;background:var(--s3);border-radius:99px;margin-top:4px;overflow:hidden}
+.wcs-bf{height:100%;border-radius:99px;background:var(--ac);transition:width .7s cubic-bezier(.34,1.2,.64,1)}
+.wcs-rt{text-align:right;flex-shrink:0}
+.wcs-v{font-family:var(--fh);font-size:17px}
+.wcs-p{font-size:10px;color:var(--tx3);font-family:var(--fm)}
+.c-ok{color:var(--ok)}.c-wn{color:var(--wn)}.c-er{color:var(--er)}
+.wc-excl{background:var(--s1);border:1px solid var(--b1);border-radius:var(--rs);padding:12px 14px}
+.wc-excl-h{font-size:10px;font-family:var(--fm);color:var(--tx3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:8px}
+.excl-grid{display:flex;flex-wrap:wrap;gap:6px}
+.excl-item{display:flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--b1);border-radius:5px;padding:6px 10px}
+.excl-nm{font-size:12px;color:var(--tx3)}
+.excl-v{font-size:13px;font-weight:500;font-family:var(--fm);color:var(--tx2)}
+.nd{font-size:12px;color:var(--tx3);font-style:italic}
+
+/* ═══════════════════════════════════════
+   REPORT SECTION (compile hasil PDF)
+═══════════════════════════════════════ */
+.report-wrap{display:none;margin-bottom:16px}
+.report-wrap.on{display:block;animation:fadeIn .3s ease}
+.report-header-card{background:var(--s1);border:1px solid var(--b2);border-radius:var(--r);padding:20px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.report-header-left h2{font-family:var(--fh);font-size:20px;margin-bottom:4px}
+.report-header-left p{font-size:12px;color:var(--tx2);font-family:var(--fm)}
+.btn-print{display:flex;align-items:center;gap:7px;padding:11px 20px;background:linear-gradient(135deg,var(--ac),var(--ac2));border:none;border-radius:var(--rs);color:#fff;font-family:var(--fb);font-size:13px;font-weight:500;cursor:pointer;transition:all .2s}
+.btn-print:hover{opacity:.88;transform:translateY(-1px)}
+.report-summary{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:18px;margin-bottom:12px}
+.rs-title{font-family:var(--fh);font-size:16px;margin-bottom:12px;padding-bottom:9px;border-bottom:1px solid var(--b1)}
+.rs-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+.rs-item{background:var(--s2);border-radius:var(--rs);padding:11px 13px;text-align:center}
+.rs-val{font-family:var(--fh);font-size:22px;margin-bottom:3px}
+.rs-lbl{font-size:10px;font-family:var(--fm);color:var(--tx3);letter-spacing:.07em;text-transform:uppercase}
+.sec-result{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:18px;margin-bottom:10px}
+.sr-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:11px;border-bottom:1px solid var(--b1);flex-wrap:wrap;gap:8px}
+.sr-title{font-family:var(--fh);font-size:16px;display:flex;align-items:center;gap:8px}
+.sr-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.sr-wc{font-size:11px;color:var(--tx3);font-family:var(--fm)}
+.sr-body{display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start}
+.sr-gauge{flex-shrink:0}
+.sr-stats{display:flex;flex-direction:column;gap:7px}
+.sr-stat{display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:6px 0;border-bottom:1px solid var(--b1)}
+.sr-stat:last-child{border-bottom:none}
+.sr-stat-l{color:var(--tx3)}
+.sr-stat-v{font-weight:500}
+.sr-hl{margin-top:13px}
+.sr-hl-title{font-size:10px;font-family:var(--fm);color:var(--tx3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:8px}
+.sr-para{margin-top:12px}
+.sr-para-title{font-size:10px;font-family:var(--fm);color:var(--tx3);letter-spacing:.09em;text-transform:uppercase;margin-bottom:8px}
+.no-section{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:28px;text-align:center;color:var(--tx3);font-size:14px}
+
+/* ═══════════════════════════════════════
+   ABOUT
+═══════════════════════════════════════ */
+.about-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r);padding:28px 24px;margin-bottom:13px}
+.about-hdr{display:flex;align-items:center;gap:14px;margin-bottom:20px;padding-bottom:17px;border-bottom:1px solid var(--b1)}
+.about-logo{width:48px;height:48px;border-radius:13px;overflow:hidden}
+.about-logo img{width:100%;height:100%;object-fit:contain}
+.about-nm{font-family:var(--fh);font-size:24px}
+.about-ver{font-size:11px;font-family:var(--fm);color:var(--ac);letter-spacing:.07em;margin-top:2px}
+.about-sh{font-family:var(--fh);font-size:17px;margin-bottom:10px}
+.about-body{font-size:14px;line-height:1.85;color:var(--tx2)}
+.divider{height:1px;background:var(--b1);margin:20px 0}
+.feat-list{display:flex;flex-direction:column;gap:8px}
+.feat{display:flex;align-items:flex-start;gap:8px;font-size:13px;color:var(--tx2);line-height:1.6}
+.feat-dot{width:5px;height:5px;border-radius:50%;background:var(--ac);margin-top:7px;flex-shrink:0}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.am{background:var(--s2);border-radius:var(--rs);padding:12px 14px}
+.am-l{font-size:10px;font-family:var(--fm);color:var(--tx3);letter-spacing:.07em;text-transform:uppercase;margin-bottom:3px}
+.am-v{font-size:13px;font-weight:500}
+
+footer{text-align:center;padding-top:24px;font-size:11px;color:var(--tx3);font-family:var(--fm);letter-spacing:.05em;border-top:1px solid var(--b1);margin-top:6px;line-height:2}
+
+/* ═══════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════ */
+@keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes dots{0%,20%{content:'.'}40%{content:'..'}60%,100%{content:'...'}}
+
+/* ═══════════════════════════════════════
+   PRINT STYLES
+═══════════════════════════════════════ */
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{background:#fff!important;color:#111!important;font-family:'Outfit',sans-serif}
+  .orb,.orb1,.orb2,#lock,.modal-bg,header,.nav,#panel-teks,#panel-tentang,.msk-nav,.card:not(.print-show),.upload-z,.file-card,.prog-wrap,.loader,.result,.wc-info-bar,.wc-total,.wc-secs,.wc-excl,.btn-row,.btn-print,.hdr-r,.report-header-card .btn-print{display:none!important}
+  .app{padding:0!important;max-width:100%!important}
+  .panel#panel-manuskrip,.msk-pnl#msk-ai,.report-wrap{display:block!important}
+  .report-wrap.on{display:block!important}
+  .report-header-card{background:#f8f9ff!important;border:1px solid #dde3ff!important;border-radius:8px!important;padding:16px!important;margin-bottom:12px!important;page-break-inside:avoid}
+  .report-header-card h2{color:#1a1f3a!important;font-size:18px!important}
+  .report-header-card p{color:#666!important}
+  .report-summary{background:#f8f9ff!important;border:1px solid #dde3ff!important;border-radius:8px!important;padding:14px!important;margin-bottom:12px!important;page-break-inside:avoid}
+  .rs-title{color:#1a1f3a!important;border-color:#dde3ff!important}
+  .rs-grid{gap:7px!important}
+  .rs-item{background:#eef0ff!important;border-radius:6px!important;padding:10px!important}
+  .rs-val{color:#3a5aff!important;font-size:20px!important}
+  .rs-lbl{color:#555!important}
+  .sec-result{background:#fff!important;border:1px solid #dde3ff!important;border-radius:8px!important;padding:14px!important;margin-bottom:10px!important;page-break-inside:avoid}
+  .sr-head{border-color:#dde3ff!important}
+  .sr-title{color:#1a1f3a!important;font-size:15px!important}
+  .sr-wc{color:#666!important}
+  .vbadge.er{background:#fff0f0!important;color:#c0392b!important;border-color:#f0b0b0!important}
+  .vbadge.wn{background:#fffbf0!important;color:#d97706!important;border-color:#f0d890!important}
+  .vbadge.ok{background:#f0fff8!important;color:#0d9966!important;border-color:#a0e8cc!important}
+  .sr-stat{border-color:#eee!important}
+  .sr-stat-l{color:#666!important}
+  .sr-stat-v{color:#1a1f3a!important}
+  .slbl,.sr-hl-title,.sr-para-title{color:#888!important}
+  .hl-txt{font-size:12px!important;line-height:1.9!important}
+  .s-ai{background:#ffe8e8!important;border-color:#f87171!important}
+  .s-hu{background:#e8fff4!important;border-color:#34d399!important}
+  .s-mx{background:#fff8e8!important;border-color:#fbbf24!important}
+  .para-item{background:#f8f9ff!important;border-color:#dde3ff!important}
+  .para-ol{color:#888!important}
+  .para-ot{color:#555!important}
+  .para-sl{color:#3a5aff!important}
+  .para-st{background:#eef0ff!important;border-color:#dde3ff!important;color:#1a1f3a!important}
+  .copy-btn,.no-section{display:none!important}
+  .sr-body{grid-template-columns:90px 1fr!important;gap:12px!important}
+  .g-val{fill:#1a1f3a!important;font-size:22px!important}
+  .g-lbl{fill:#888!important}
+  .g-bg{stroke:#e5e7ff!important}
+  @page{margin:18mm 16mm;size:A4}
+}
+
+@media(max-width:600px){
+  .gauge-card,.sr-body{flex-direction:column}
+  .sr-body{grid-template-columns:1fr}
+  .stats-row,.rs-grid{grid-template-columns:1fr 1fr}
+  .hero h1{font-size:26px}
+  .about-grid{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+
+<!-- ═══ LOCK ═══ -->
+<div id="lock">
+  <div class="lk">
+    <div class="lk-logo"><img src="logo.png" alt="SkripCheck"></div>
+    <div class="lk-h">SkripCheck</div>
+    <div class="lk-p" id="lk-p">Masukkan Groq API Key Anda. Key disimpan hanya di browser Anda — tidak dikirim ke mana pun selain Groq.</div>
+    <div class="f-lbl">Groq API Key</div>
+    <div class="f-wrap">
+      <input class="f-inp" id="lk-inp" type="password" placeholder="Paste API key dari console.groq.com" autocomplete="off" spellcheck="false">
+      <button class="f-eye" id="lk-eye" type="button">👁</button>
+    </div>
+    <div class="f-err" id="lk-err">API Key tidak valid (minimal 20 karakter)</div>
+    <div class="f-hint">Daftar gratis di <a href="https://console.groq.com" target="_blank">console.groq.com</a> → API Keys → Create API Key.</div>
+    <button class="btn-main" id="lk-btn">Simpan &amp; Mulai</button>
+    <div class="lk-foot"><div class="lk-dot"></div><span id="lk-safe">Key tersimpan aman di browser Anda</span></div>
+  </div>
+</div>
+
+<!-- ═══ MODAL ═══ -->
+<div class="modal-bg" id="modal">
+  <div class="modal">
+    <h3>Pengaturan API Key</h3>
+    <p>Key aktif saat ini:</p>
+    <div class="modal-preview" id="mod-preview">—</div>
+    <div class="modal-btns">
+      <button class="btn-danger" id="mod-reset">Hapus &amp; Ganti Key</button>
+      <button class="btn-ghost" id="mod-close">Tutup</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div class="app">
+  <header>
+    <div class="logo">
+      <div class="logo-ico"><img src="logo.png" alt="SkripCheck"></div>
+      <div>
+        <div class="logo-nm">SkripCheck</div>
+        <div class="logo-vr">AI Content Detector v.0.2.0</div>
+      </div>
+    </div>
+    <div class="hdr-r">
+      <div class="lang-tgl">
+        <button class="lang-btn on" data-l="id">ID</button>
+        <button class="lang-btn" data-l="en">EN</button>
+      </div>
+      <button class="ico-btn" id="settings-btn">⚙</button>
+    </div>
+  </header>
+
+  <div class="hero">
+    <h1><em id="hero-em">Deteksi Konten AI</em> <span id="hero-rest">dalam Karya Ilmiah</span></h1>
+    <p id="hero-p">Analisis teks ilmiah Anda per section — deteksi probabilitas AI, highlight kalimat mencurigakan, saran parafrasa, dan ekspor laporan PDF.</p>
+  </div>
+
+  <div class="nav">
+    <button class="nav-btn on" data-panel="teks">📄 <span id="nav-teks">Teks</span></button>
+    <button class="nav-btn" data-panel="manuskrip">📂 <span id="nav-msk">Manuskrip</span></button>
+    <button class="nav-btn" data-panel="tentang">ℹ <span id="nav-ttg">Tentang</span></button>
+  </div>
+
+  <!-- ═══ PANEL TEKS ═══ -->
+  <div class="panel on" id="panel-teks">
+    <div class="card">
+      <div class="lbl" id="lbl-teks">Teks / Abstrak (maks. 300 kata)</div>
+      <textarea id="txt-in" rows="7" placeholder="Tempelkan teks ilmiah di sini..."></textarea>
+      <div class="meta-row">
+        <div class="wc-wrap">
+          <span class="wc-txt"><span id="wc-n">0</span>/300 <span id="wc-u">kata</span></span>
+          <div class="wc-bar"><div class="wc-fill" id="wc-bar"></div></div>
+        </div>
+        <span class="msg-warn" id="wc-warn">Min. 50 kata</span>
+        <span class="msg-over" id="wc-over">Maks. 300 kata</span>
+      </div>
+      <div class="btn-row">
+        <button class="btn-p" id="btn-ana-t">Analisis Sekarang</button>
+        <button class="btn-s" id="btn-clr">Hapus</button>
+      </div>
+    </div>
+    <div class="loader" id="load-t">
+      <div class="spin"></div>
+      <div class="loader-txt"><span id="ldr-t">Menganalisis</span><span class="dots"></span></div>
+    </div>
+    <div class="result" id="res-t">
+      <div class="gauge-card">
+        <div class="gauge-wrap">
+          <svg viewBox="0 0 114 114" width="114" height="114">
+            <circle class="g-bg" cx="57" cy="57" r="46" fill="none" stroke-width="8"/>
+            <circle class="g-fill" id="gf-t" cx="57" cy="57" r="46" fill="none" stroke-width="8" stroke-dasharray="289.03" stroke-dashoffset="289.03" transform="rotate(-90 57 57)"/>
+            <text class="g-val" id="gv-t" x="57" y="53">0%</text>
+            <text class="g-lbl" x="57" y="68">AI Score</text>
+          </svg>
+        </div>
+        <div class="g-info">
+          <div class="vbadge ok" id="vb-t">—</div>
+          <div class="v-title" id="vt-t">—</div>
+          <div class="v-desc" id="vd-t">—</div>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-l" id="sl-wc">Jumlah Kata</div><div class="stat-v" id="sv-wc-t">—</div></div>
+        <div class="stat"><div class="stat-l" id="sl-ai">Kalimat AI</div><div class="stat-v" id="sv-ai-t">—</div></div>
+        <div class="stat"><div class="stat-l" id="sl-px">Perplexity</div><div class="stat-v" id="sv-px-t">—</div></div>
+      </div>
+      <div class="hl-card">
+        <div class="sub-tabs">
+          <button class="stab on" data-mode="t" data-tab="hl">Highlight</button>
+          <button class="stab" data-mode="t" data-tab="pa">Saran Parafrasa</button>
+        </div>
+        <div class="scnt on" id="sc-t-hl">
+          <div class="slbl">Analisis per kalimat</div>
+          <div class="hl-txt" id="hl-t"></div>
+          <div class="legend">
+            <div class="leg"><div class="leg-d ai"></div><span id="leg-ai">Terindikasi AI</span></div>
+            <div class="leg"><div class="leg-d mx"></div><span id="leg-mx">Tidak Pasti</span></div>
+            <div class="leg"><div class="leg-d ok"></div><span id="leg-ok">Human-written</span></div>
+          </div>
+        </div>
+        <div class="scnt" id="sc-t-pa">
+          <div class="slbl">Saran humanisasi kalimat berindikasi AI</div>
+          <div class="para-list" id="pl-t"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PANEL MANUSKRIP ═══ -->
+  <div class="panel" id="panel-manuskrip">
+    <div class="upload-z" id="upload-z">
+      <input type="file" id="file-in" accept=".pdf,.doc,.docx">
+      <div class="upload-ico">📁</div>
+      <div class="upload-h" id="up-h">Unggah Manuskrip</div>
+      <div class="upload-p" id="up-p">Seret &amp; lepas file, atau klik untuk memilih.<br>Analisis AI per section tanpa batas kata.</div>
+      <div class="fmt-row">
+        <span class="fmt">.PDF</span><span class="fmt">.DOC</span><span class="fmt">.DOCX</span>
+      </div>
+    </div>
+
+    <div class="file-card" id="file-card">
+      <div class="fc-ico" id="fc-ico">📄</div>
+      <div class="fc-info">
+        <div class="fc-name" id="fc-name">—</div>
+        <div class="fc-meta" id="fc-meta">—</div>
+      </div>
+      <button class="btn-rm" id="btn-rm">✕ Hapus</button>
+    </div>
+
+    <div id="msk-wrap" style="display:none">
+      <div class="msk-nav">
+        <button class="msk-tab on" data-msk="ai">🤖 <span id="msk-ai-lbl">Analisis AI per Section</span></button>
+        <button class="msk-tab" data-msk="wc">📊 <span id="msk-wc-lbl">Hitung Kata</span></button>
+      </div>
+
+      <!-- MSK: AI Analysis -->
+      <div class="msk-pnl on" id="msk-ai">
+        <div class="card">
+          <div class="lbl" id="lbl-sec">Section yang Terdeteksi</div>
+          <div id="sec-preview"></div>
+          <div style="background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);border-radius:var(--rs);padding:9px 13px;margin-top:12px;font-size:12px;color:var(--wn);line-height:1.6" id="tpm-note">
+            ⏱ Analisis dikirim bergantian dengan jeda otomatis untuk menghindari rate limit. Estimasi waktu: 30–90 detik tergantung jumlah section.
+          </div>
+          <div class="btn-row" style="margin-top:12px">
+            <button class="btn-p" id="btn-ana-m">🚀 <span id="btn-ana-m-txt">Mulai Analisis Per Section</span></button>
+          </div>
+        </div>
+
+        <!-- Progress -->
+        <div class="prog-wrap" id="prog-wrap">
+          <div class="prog-title" id="prog-title">Menganalisis Manuskrip...</div>
+          <div class="prog-list" id="prog-list"></div>
+          <div class="prog-bar-wrap"><div class="prog-bar" id="prog-bar"></div></div>
+          <div class="prog-summary" id="prog-summary"></div>
+        </div>
+
+        <!-- Report -->
+        <div class="report-wrap" id="report-wrap">
+          <div class="report-header-card">
+            <div class="report-header-left">
+              <h2 id="rpt-title">Laporan Analisis AI</h2>
+              <p id="rpt-meta">—</p>
+            </div>
+            <button class="btn-print" id="btn-print">🖨 <span id="btn-print-txt">Cetak / Simpan PDF</span></button>
+          </div>
+          <div class="report-summary">
+            <div class="rs-title" id="rs-title">Ringkasan Keseluruhan</div>
+            <div class="rs-grid" id="rs-grid"></div>
+          </div>
+          <div id="sec-results"></div>
+        </div>
+      </div>
+
+      <!-- MSK: Word Count -->
+      <div class="msk-pnl" id="msk-wc">
+        <div class="wc-info-bar">ℹ <span id="wc-info-txt">Kata dihitung per section. Acknowledgement, References, Appendix, dan Conflict of Interest dikecualikan dari total.</span></div>
+        <div class="wc-total">
+          <div class="wct-l" id="wct-lbl">Total Kata (Excl. non-content)</div>
+          <div class="wct-v" id="wct-v">—</div>
+          <div class="wct-s" id="wct-s">—</div>
+        </div>
+        <div class="wc-secs" id="wc-secs"></div>
+        <div class="wc-excl">
+          <div class="wc-excl-h" id="wc-excl-h">Section Dikecualikan</div>
+          <div class="excl-grid" id="excl-grid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ PANEL TENTANG ═══ -->
+  <div class="panel" id="panel-tentang">
+    <div class="about-card">
+      <div class="about-hdr">
+        <div class="about-logo"><img src="logo.png" alt="SkripCheck"></div>
+        <div>
+          <div class="about-nm">SkripCheck</div>
+          <div class="about-ver">v.0.2.0 — AI Content Detector</div>
+        </div>
+      </div>
+      <div class="about-sh">Mengenal SkripCheck</div>
+      <div class="about-body">SkripCheck hadir sebagai solusi cerdas berbasis AI bagi komunitas akademik dan medis. Dikembangkan secara independen, aplikasi ini bertujuan untuk mendampingi mahasiswa, praktisi klinis, dan peneliti dalam menjaga kualitas publikasi ilmiah melalui deteksi konten AI yang andal. Sebagai instrumen pendukung riset, SkripCheck akan terus berevolusi melalui pembaruan fitur secara berkala untuk menjawab tantangan dunia literasi digital masa depan.</div>
+      <div class="divider"></div>
+      <div class="about-sh" style="margin-bottom:10px">Fitur Utama</div>
+      <div class="feat-list">
+        <div class="feat"><div class="feat-dot"></div><span>Analisis AI per section (Abstract → Conclusion) secara bergantian</span></div>
+        <div class="feat"><div class="feat-dot"></div><span>Laporan PDF lengkap dengan highlight dan saran parafrasa per section</span></div>
+        <div class="feat"><div class="feat-dot"></div><span>Hitung kata per section dengan referensi ideal jurnal internasional</span></div>
+        <div class="feat"><div class="feat-dot"></div><span>Analisis teks singkat (tab Teks) untuk abstrak atau paragraf</span></div>
+        <div class="feat"><div class="feat-dot"></div><span>API key tersimpan lokal — aman saat berbagi tautan ke orang lain</span></div>
+      </div>
+      <div class="divider"></div>
+      <div class="about-grid">
+        <div class="am"><div class="am-l">Versi</div><div class="am-v">0.2.0</div></div>
+        <div class="am"><div class="am-l">Dikembangkan oleh</div><div class="am-v">dr. WIY</div></div>
+        <div class="am"><div class="am-l">Engine</div><div class="am-v">Groq (LLaMA 3.3)</div></div>
+        <div class="am"><div class="am-l">Target</div><div class="am-v">Akademik &amp; Medis</div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div>SkripCheck v.0.2.0 &nbsp;·&nbsp; Dibuat oleh dr. WIY</div>
+    <div id="ft-note">Untuk keperluan edukasi dan verifikasi akademik</div>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+'use strict';
+
+// ── CONSTANTS ──────────────────────────────────────────────
+const LS_KEY   = 'sc_gk';
+const ENDPOINT = 'https://api.groq.com/openai/v1/chat/completions';
+const MODEL    = 'llama-3.3-70b-versatile';
+const CIRC_T   = 289.03;  // 2π × 46
+
+// ── STATE ──────────────────────────────────────────────────
+let lang       = 'id';
+let busy       = false;
+let fullText   = '';
+let sectionMap = {};   // {k: {name, text, wc}}
+let reportData = null; // compiled results
+
+// ── SECTION DEFINITIONS ────────────────────────────────────
+const SECTIONS_AI = [
+  { k:'abstract',   icon:'📋', nm:{id:'Abstract',        en:'Abstract'},
+    pats:[/^abstract$/im,/^abstrak$/im,/^ringkasan$/im],
+    maxWords: 400 },
+  { k:'intro',      icon:'📖', nm:{id:'Introduction',    en:'Introduction'},
+    pats:[/^introduction$/im,/^pendahuluan$/im,/^latar belakang$/im,/^background$/im],
+    maxWords: 700 },
+  { k:'methods',    icon:'🔬', nm:{id:'Methods',          en:'Methods'},
+    pats:[/^(materials?\s+and\s+)?methods?$/im,/^metode(\s+penelitian)?$/im,/^methodology$/im,/^bahan\s+dan\s+metode$/im],
+    maxWords: 700 },
+  { k:'results',    icon:'📊', nm:{id:'Results',          en:'Results'},
+    pats:[/^results?(\s+and\s+discussion)?$/im,/^hasil(\s+penelitian)?$/im,/^findings?$/im,/^temuan$/im],
+    maxWords: 700 },
+  { k:'discussion', icon:'💬', nm:{id:'Discussion',       en:'Discussion'},
+    pats:[/^discussion$/im,/^pembahasan$/im,/^diskusi$/im],
+    maxWords: 700 },
+  { k:'conclusion', icon:'✅', nm:{id:'Conclusion',       en:'Conclusion'},
+    pats:[/^conclusions?$/im,/^kesimpulan$/im,/^penutup$/im,/^summary$/im],
+    maxWords: 400 },
+];
+
+const SECTIONS_WC = [
+  ...SECTIONS_AI.map(s => ({...s, hint:{id:'150–300 kata',en:'150–300 words'}, min:150, max:300})),
+];
+// Override hints
+const WC_HINTS = {
+  abstract:   {hint:{id:'150–300 kata',en:'150–300 words'},  min:150, max:300},
+  intro:      {hint:{id:'300–600 kata',en:'300–600 words'},  min:300, max:600},
+  methods:    {hint:{id:'400–800 kata',en:'400–800 words'},  min:400, max:800},
+  results:    {hint:{id:'400–800 kata',en:'400–800 words'},  min:400, max:800},
+  discussion: {hint:{id:'400–800 kata',en:'400–800 words'},  min:400, max:800},
+  conclusion: {hint:{id:'100–250 kata',en:'100–250 words'},  min:100, max:250},
+};
+
+const SECTIONS_EXCL = [
+  { k:'ack',    icon:'🙏', nm:{id:'Acknowledgement',      en:'Acknowledgement'},
+    pats:[/^acknowledgem[ae]nts?$/im,/^ucapan\s+terima\s+kasih$/im]},
+  { k:'ref',    icon:'📚', nm:{id:'References',            en:'References'},
+    pats:[/^references?$/im,/^daftar\s+pustaka$/im,/^bibliography$/im]},
+  { k:'app',    icon:'📎', nm:{id:'Appendix',              en:'Appendix'},
+    pats:[/^appendix/im,/^lampiran/im,/^supplementary/im]},
+  { k:'coi',    icon:'⚖',  nm:{id:'Conflict of Interest', en:'Conflict of Interest'},
+    pats:[/^conflicts?\s+of\s+interest/im,/^competing\s+interest/im]},
+  { k:'fund',   icon:'💰', nm:{id:'Funding',               en:'Funding'},
+    pats:[/^funding$/im,/^financial\s+support$/im,/^sumber\s+pendanaan$/im]},
+];
+
+// ── TRANSLATIONS ───────────────────────────────────────────
+const T = {
+  id:{
+    'lk-p':'Masukkan Groq API Key Anda. Key disimpan hanya di browser Anda — tidak dikirim ke mana pun selain Groq.',
+    'lk-safe':'Key tersimpan aman di browser Anda',
+    'lk-err':'API Key tidak valid (minimal 20 karakter)',
+    'lk-btn':'Simpan & Mulai',
+    'hero-em':'Deteksi Konten AI',
+    'hero-rest':'dalam Karya Ilmiah',
+    'hero-p':'Analisis teks ilmiah Anda per section — deteksi probabilitas AI, highlight kalimat mencurigakan, saran parafrasa, dan ekspor laporan PDF.',
+    'nav-teks':'Teks','nav-msk':'Manuskrip','nav-ttg':'Tentang',
+    'lbl-teks':'Teks / Abstrak (maks. 300 kata)',
+    'wc-u':'kata','wc-warn':'Min. 50 kata','wc-over':'Maks. 300 kata',
+    'btn-ana-t':'Analisis Sekarang','btn-clr':'Hapus',
+    'ldr-t':'Menganalisis',
+    'sl-wc':'Jumlah Kata','sl-ai':'Kalimat AI','sl-px':'Perplexity',
+    'leg-ai':'Terindikasi AI','leg-mx':'Tidak Pasti','leg-ok':'Human-written',
+    'up-h':'Unggah Manuskrip',
+    'up-p':'Seret & lepas file, atau klik untuk memilih.<br>Analisis AI per section tanpa batas kata.',
+    'btn-rm':'✕ Hapus',
+    'msk-ai-lbl':'Analisis AI per Section','msk-wc-lbl':'Hitung Kata',
+    'lbl-sec':'Section yang Terdeteksi',
+    'btn-ana-m-txt':'Mulai Analisis Per Section',
+    'prog-title':'Menganalisis Manuskrip...',
+    'wct-lbl':'Total Kata (Excl. non-content)',
+    'wc-excl-h':'Section Dikecualikan',
+    'wc-info-txt':'Kata dihitung per section. Acknowledgement, References, Appendix, dan Conflict of Interest dikecualikan dari total.',
+    'rpt-title':'Laporan Analisis AI — SkripCheck',
+    'rs-title':'Ringkasan Keseluruhan',
+    'btn-print-txt':'Cetak / Simpan PDF',
+    'ft-note':'Untuk keperluan edukasi dan verifikasi akademik',
+    'para-ol':'KALIMAT ASLI','para-sl':'SARAN PARAFRASA','copy':'Salin',
+    'no-ai':'Tidak ada kalimat berindikasi AI.',
+    'no-section':'Section tidak terdeteksi. Pastikan judul section sesuai standar (Abstract, Introduction, Methods, Results, Discussion, Conclusion).',
+    'extracting':'Mengekstrak teks dokumen...',
+    'status-wait':'Menunggu','status-analyzing':'Menganalisis...','status-done':'Selesai','status-err':'Gagal',
+    'wc-total-lbl':'kata keseluruhan','wc-excl-lbl':'kata dikecualikan',
+    'rs-avg-ai':'Rata-rata AI','rs-total-wc':'Total Kata','rs-sections':'Section Dianalisis','rs-ai-sents':'Total Kalimat AI',
+    'sr-wc':'Kata','sr-ai-pct':'Skor AI','sr-perp':'Perplexity','sr-ai-sents':'Kalimat AI',
+    'nd':'Tidak terdeteksi',
+    'vh':{
+      er:{badge:'Terindikasi AI Tinggi', title:'Sangat mungkin ditulis AI', desc:'Teks menunjukkan pola linguistik khas AI. Penulisan ulang direkomendasikan.'},
+      wn:{badge:'Indikasi AI Sedang',    title:'Kemungkinan campuran',      desc:'Mengandung campuran kalimat manusia dan AI. Periksa kalimat yang disorot.'},
+      ok:{badge:'Kemungkinan Human',     title:'Dominan ditulis manusia',   desc:'Karakteristik penulisan manusia yang kuat. Terlihat autentik.'},
+    },
+    'err-short':'Teks terlalu pendek (minimal 50 kata).',
+    'err-over':'Teks melebihi 300 kata. Harap kurangi.',
+    'err-key':'API Key tidak valid. Silakan masukkan ulang.',
+    'err-api':'Gagal terhubung ke Groq API. Periksa API key Anda.',
+    'err-file':'Format file tidak didukung atau file gagal dibaca.',
+    'err-no-sec':'Tidak ada section yang terdeteksi untuk dianalisis.',
+  },
+  en:{
+    'lk-p':'Enter your Groq API Key. The key is stored only in your browser — never sent anywhere except Groq.',
+    'lk-safe':'Key stored securely in your browser',
+    'lk-err':'Invalid API Key (minimum 20 characters)',
+    'lk-btn':'Save & Start',
+    'hero-em':'Detect AI Content',
+    'hero-rest':'in Academic Writing',
+    'hero-p':'Analyze your academic text per section — detect AI probability, highlight suspicious sentences, get paraphrase suggestions, and export a PDF report.',
+    'nav-teks':'Text','nav-msk':'Manuscript','nav-ttg':'About',
+    'lbl-teks':'Text / Abstract (max. 300 words)',
+    'wc-u':'words','wc-warn':'Min. 50 words','wc-over':'Max. 300 words',
+    'btn-ana-t':'Analyze Now','btn-clr':'Clear',
+    'ldr-t':'Analyzing',
+    'sl-wc':'Word Count','sl-ai':'AI Sentences','sl-px':'Perplexity',
+    'leg-ai':'AI Indicated','leg-mx':'Uncertain','leg-ok':'Human-written',
+    'up-h':'Upload Manuscript',
+    'up-p':'Drag & drop your file, or click to browse.<br>Full per-section AI analysis without word limits.',
+    'btn-rm':'✕ Remove',
+    'msk-ai-lbl':'AI Analysis per Section','msk-wc-lbl':'Word Count',
+    'lbl-sec':'Detected Sections',
+    'btn-ana-m-txt':'Start Per-Section Analysis',
+    'prog-title':'Analyzing Manuscript...',
+    'wct-lbl':'Total Words (Excl. non-content)',
+    'wc-excl-h':'Excluded Sections',
+    'wc-info-txt':'Words are counted per section. Acknowledgement, References, Appendix, and Conflict of Interest are excluded.',
+    'rpt-title':'AI Analysis Report — SkripCheck',
+    'rs-title':'Overall Summary',
+    'btn-print-txt':'Print / Save as PDF',
+    'ft-note':'For educational and academic verification purposes',
+    'para-ol':'ORIGINAL','para-sl':'PARAPHRASE SUGGESTION','copy':'Copy',
+    'no-ai':'No AI-indicated sentences detected.',
+    'no-section':'No sections detected. Ensure section headings follow standard format (Abstract, Introduction, Methods, Results, Discussion, Conclusion).',
+    'extracting':'Extracting document text...',
+    'status-wait':'Waiting','status-analyzing':'Analyzing...','status-done':'Done','status-err':'Failed',
+    'wc-total-lbl':'words total','wc-excl-lbl':'words excluded',
+    'rs-avg-ai':'Avg AI Score','rs-total-wc':'Total Words','rs-sections':'Sections Analyzed','rs-ai-sents':'Total AI Sentences',
+    'sr-wc':'Words','sr-ai-pct':'AI Score','sr-perp':'Perplexity','sr-ai-sents':'AI Sentences',
+    'nd':'Not detected',
+    'vh':{
+      er:{badge:'High AI Probability', title:'Very likely AI-written',      desc:'Strong AI linguistic patterns detected. Rewriting is recommended.'},
+      wn:{badge:'Moderate AI Signals', title:'Likely mixed content',         desc:'Mix of human and AI sentences. Review highlighted sentences.'},
+      ok:{badge:'Likely Human',        title:'Predominantly human-written',  desc:'Strong characteristics of human writing. Appears authentic.'},
+    },
+    'err-short':'Text too short (minimum 50 words).',
+    'err-over':'Text exceeds 300 words. Please reduce.',
+    'err-key':'Invalid API Key. Please re-enter.',
+    'err-api':'Failed to connect to Groq API. Check your API key.',
+    'err-file':'Unsupported format or failed to read file.',
+    'err-no-sec':'No sections detected for analysis.',
+  }
+};
+
+function t(k){ return T[lang][k] !== undefined ? T[lang][k] : k; }
+
+// ── LANG ───────────────────────────────────────────────────
+function setLang(l){
+  lang = l;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('on', b.dataset.l === l));
+  applyLang();
+}
+
+function applyLang(){
+  const keys = ['lk-p','lk-safe','lk-err','lk-btn',
+    'hero-em','hero-rest','hero-p',
+    'nav-teks','nav-msk','nav-ttg',
+    'lbl-teks','wc-u','wc-warn','wc-over',
+    'btn-ana-t','btn-clr','ldr-t',
+    'sl-wc','sl-ai','sl-px',
+    'leg-ai','leg-mx','leg-ok',
+    'up-h','btn-rm',
+    'msk-ai-lbl','msk-wc-lbl','lbl-sec',
+    'btn-ana-m-txt','prog-title',
+    'wct-lbl','wc-excl-h','wc-info-txt',
+    'rpt-title','rs-title','btn-print-txt',
+    'ft-note'];
+  keys.forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    const v = T[lang][id];
+    if(v === undefined || typeof v === 'object') return;
+    if(id === 'up-p') { el.innerHTML = v; return; }
+    el.textContent = v;
+  });
+}
+
+// ── LOCK ───────────────────────────────────────────────────
+function getKey(){ return localStorage.getItem(LS_KEY) || ''; }
+
+function saveKey(){
+  const k = document.getElementById('lk-inp').value.trim();
+  const err = document.getElementById('lk-err');
+  if(!k || k.length < 20){ err.classList.add('on'); return; }
+  err.classList.remove('on');
+  localStorage.setItem(LS_KEY, k);
+  document.getElementById('lock').classList.add('gone');
+}
+
+function resetKey(){
+  localStorage.removeItem(LS_KEY);
+  closeModal();
+  document.getElementById('lk-inp').value = '';
+  document.getElementById('lock').classList.remove('gone');
+}
+
+function openModal(){
+  const k = getKey();
+  document.getElementById('mod-preview').textContent = k
+    ? k.slice(0,8) + '···' + k.slice(-4) : '(tidak ada)';
+  document.getElementById('modal').classList.add('on');
+}
+function closeModal(){ document.getElementById('modal').classList.remove('on'); }
+
+// ── NAV ────────────────────────────────────────────────────
+function switchPanel(name){
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('on', b.dataset.panel === name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('on', p.id === 'panel-' + name));
+}
+
+function switchMskTab(name){
+  document.querySelectorAll('.msk-tab').forEach(b => b.classList.toggle('on', b.dataset.msk === name));
+  document.querySelectorAll('.msk-pnl').forEach(p => p.classList.toggle('on', p.id === 'msk-' + name));
+}
+
+function switchSubTab(mode, tab){
+  document.getElementById('sc-' + mode + '-hl').classList.toggle('on', tab === 'hl');
+  document.getElementById('sc-' + mode + '-pa').classList.toggle('on', tab === 'pa');
+  document.querySelectorAll(`.stab[data-mode="${mode}"]`).forEach(b =>
+    b.classList.toggle('on', b.dataset.tab === tab));
+}
+
+// ── WORD COUNT BAR (Teks tab) ──────────────────────────────
+function updateWC(){
+  const txt = document.getElementById('txt-in').value.trim();
+  const n = txt ? txt.split(/\s+/).length : 0;
+  document.getElementById('wc-n').textContent = n;
+  const pct = Math.min(100, (n/300)*100);
+  const bar = document.getElementById('wc-bar');
+  bar.style.width = pct + '%';
+  bar.style.background = n > 300 ? 'var(--er)' : n > 250 ? 'var(--wn)' : 'var(--ac)';
+  document.getElementById('wc-warn').style.display = (n > 0 && n < 50) ? 'block' : 'none';
+  document.getElementById('wc-over').style.display = n > 300 ? 'block' : 'none';
+}
+
+function clearTeks(){
+  document.getElementById('txt-in').value = '';
+  document.getElementById('wc-n').textContent = '0';
+  document.getElementById('wc-bar').style.width = '0';
+  document.getElementById('wc-warn').style.display = 'none';
+  document.getElementById('wc-over').style.display = 'none';
+  document.getElementById('res-t').classList.remove('on');
+  document.getElementById('load-t').classList.remove('on');
+}
+
+// ── FILE UPLOAD ────────────────────────────────────────────
+function removeFile(){
+  fullText = '';
+  sectionMap = {};
+  reportData = null;
+  document.getElementById('file-card').classList.remove('on');
+  document.getElementById('msk-wrap').style.display = 'none';
+  document.getElementById('prog-wrap').classList.remove('on');
+  document.getElementById('report-wrap').classList.remove('on');
+  document.getElementById('file-in').value = '';
+}
+
+async function handleFile(file){
+  if(!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if(!['pdf','doc','docx'].includes(ext)){ alert(t('err-file')); return; }
+
+  const metaEl = document.getElementById('fc-meta');
+  document.getElementById('fc-ico').textContent = ext === 'pdf' ? '📕' : '📘';
+  document.getElementById('fc-name').textContent = file.name;
+  metaEl.textContent = t('extracting');
+  document.getElementById('file-card').classList.add('on');
+  document.getElementById('msk-wrap').style.display = 'none';
+  document.getElementById('prog-wrap').classList.remove('on');
+  document.getElementById('report-wrap').classList.remove('on');
+
+  try {
+    const text = ext === 'pdf' ? await extractPDF(file) : await extractDOCX(file);
+    fullText = text.trim();
+    const wc = fullText ? fullText.split(/\s+/).length : 0;
+    metaEl.textContent = ext.toUpperCase() + ' · ' + (file.size/1024).toFixed(1) + ' KB · ' + wc.toLocaleString() + ' ' + t('wc-u');
+
+    // Detect sections
+    sectionMap = detectSections(fullText);
+    renderSectionPreview();
+    runWordCount(fullText);
+    document.getElementById('msk-wrap').style.display = 'block';
+  } catch(e){
+    console.error(e);
+    metaEl.textContent = 'Error: ' + (e.message || 'gagal membaca file');
+    alert(t('err-file'));
+  }
+}
+
+// ── PDF EXTRACTION ─────────────────────────────────────────
+async function extractPDF(file){
+  const url = URL.createObjectURL(file);
+  try {
+    const pdf = await pdfjsLib.getDocument({ url, verbosity: 0 }).promise;
+    const maxPages = Math.min(pdf.numPages, 40);
+    const parts = [];
+    for(let i = 1; i <= maxPages; i++){
+      await new Promise(r => setTimeout(r, 0)); // yield per page
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent({ includeMarkedContent: false });
+      const str = content.items.map(x => x.str).join(' ').trim();
+      if(str) parts.push(str);
+      page.cleanup();
+    }
+    return parts.join('\n\n');
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+// ── DOCX EXTRACTION ────────────────────────────────────────
+async function extractDOCX(file){
+  await new Promise(r => setTimeout(r, 0));
+  const ab = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer: ab });
+  return result.value || '';
+}
+
+// ── SECTION DETECTION ──────────────────────────────────────
+function detectSections(text){
+  const allDefs = [...SECTIONS_AI, ...SECTIONS_EXCL];
+  const found = [];
+
+  for(const def of allDefs){
+    for(const pat of def.pats){
+      const m = new RegExp(pat.source, pat.flags).exec(text);
+      if(m){
+        const lineStart = text.lastIndexOf('\n', m.index) + 1;
+        const lineEnd   = text.indexOf('\n', m.index);
+        const line = text.slice(lineStart, lineEnd < 0 ? undefined : lineEnd).trim();
+        if(line.split(/\s+/).length <= 8){
+          found.push({ k: def.k, idx: m.index });
+          break;
+        }
+      }
+    }
+  }
+
+  found.sort((a,b) => a.idx - b.idx);
+
+  const map = {};
+  found.forEach((sec, i) => {
+    const start = text.indexOf('\n', sec.idx);
+    const end   = i + 1 < found.length ? found[i+1].idx : text.length;
+    const secText = text.slice(start < 0 ? sec.idx : start, end).trim();
+    const wc = secText ? secText.split(/\s+/).length : 0;
+    map[sec.k] = { text: secText, wc };
+  });
+
+  return map;
+}
+
+// ── RENDER SECTION PREVIEW ─────────────────────────────────
+function renderSectionPreview(){
+  const el = document.getElementById('sec-preview');
+  const detected = SECTIONS_AI.filter(s => sectionMap[s.k]);
+
+  if(!detected.length){
+    el.innerHTML = `<div class="nd" style="padding:10px 0;font-size:13px">${t('no-section')}</div>`;
+    return;
+  }
+
+  el.innerHTML = detected.map(s => {
+    const sd = sectionMap[s.k];
+    return `<div style="display:flex;align-items:center;gap:9px;padding:8px 0;border-bottom:1px solid var(--b1)">
+      <span style="font-size:16px">${s.icon}</span>
+      <span style="font-size:13px;font-weight:500;flex:1">${s.nm[lang]}</span>
+      <span style="font-size:11px;color:var(--tx3);font-family:var(--fm)">${sd.wc.toLocaleString()} ${t('wc-u')}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── GAUGE HELPER ───────────────────────────────────────────
+function gaugeHTML(pct, id, size){
+  const sz = size || 90;
+  const r  = sz * 0.4;
+  const circ = 2 * Math.PI * r;
+  const cx = sz / 2, cy = sz / 2;
+  const offset = circ - (pct / 100) * circ;
+  const col = pct >= 70 ? 'var(--er)' : pct >= 40 ? 'var(--wn)' : 'var(--ok)';
+  return `<svg viewBox="0 0 ${sz} ${sz}" width="${sz}" height="${sz}">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--s3)" stroke-width="7"/>
+    <circle id="${id}" cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${col}" stroke-width="7"
+      stroke-dasharray="${circ.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}"
+      stroke-linecap="round" transform="rotate(-90 ${cx} ${cy})"/>
+    <text x="${cx}" y="${cy - 4}" dominant-baseline="middle" text-anchor="middle"
+      font-family="DM Serif Display,serif" font-size="${sz*0.2}" fill="var(--tx)">${pct}%</text>
+    <text x="${cx}" y="${cy + r*0.38}" dominant-baseline="middle" text-anchor="middle"
+      font-family="DM Mono,monospace" font-size="${sz*0.1}" fill="var(--tx3)">AI Score</text>
+  </svg>`;
+}
+
+// ── VERDICT HELPER ─────────────────────────────────────────
+function verdictBadge(pct){
+  const key = pct >= 70 ? 'er' : pct >= 40 ? 'wn' : 'ok';
+  const vd = t('vh')[key];
+  return { cls: key, badge: vd.badge, title: vd.title, desc: vd.desc };
+}
+
+// ── RENDER HIGHLIGHT (inline) ──────────────────────────────
+function renderHL(sentences, containerId){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  el.innerHTML = sentences.map(s => {
+    const cls = s.label === 'ai' ? 's-ai' : s.label === 'human' ? 's-hu' : 's-mx';
+    const safe = s.text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return `<span class="${cls}" title="Score:${s.score}%">${safe}</span> `;
+  }).join('');
+}
+
+// ── RENDER PARAPHRASE (inline) ─────────────────────────────
+function renderPara(sentences, suggestions, containerId){
+  const el = document.getElementById(containerId);
+  if(!el) return;
+  const aiS = sentences.filter(s => s.label === 'ai');
+  if(!aiS.length){ el.innerHTML = `<div class="nd">${t('no-ai')}</div>`; return; }
+  el.innerHTML = aiS.map((s, i) => {
+    const sug = (suggestions && suggestions[i]) ? suggestions[i] : '—';
+    const pid = containerId + '-ps-' + i;
+    const safe = s.text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const sugSafe = sug.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return `<div class="para-item">
+      <div class="para-ol">${t('para-ol')}</div>
+      <div class="para-ot">${safe}</div>
+      <div class="para-sl">${t('para-sl')}</div>
+      <div class="para-st" id="${pid}">${sugSafe}</div>
+      <button class="copy-btn" onclick="copyText('${pid}',this)">⊕ ${t('copy')}</button>
+    </div>`;
+  }).join('');
+}
+
+function copyText(id, btn){
+  const el = document.getElementById(id);
+  if(!el) return;
+  navigator.clipboard.writeText(el.textContent).then(() => {
+    const o = btn.innerHTML;
+    btn.innerHTML = '✓ Tersalin!';
+    setTimeout(() => { btn.innerHTML = o; }, 1800);
+  }).catch(() => {});
+}
+
+// ── GROQ API CALL ──────────────────────────────────────────
+async function callGroq(text){
+  const apiKey = getKey();
+  if(!apiKey || apiKey.length < 20) throw new Error('invalid_key');
+
+  const prompt = `You are an expert AI content detector for academic texts. Analyze the following text and return ONLY valid JSON — no markdown, no explanation, no preamble.
+
+Required JSON format:
+{
+  "ai_probability": <integer 0-100>,
+  "word_count": <integer>,
+  "perplexity_level": "<Low|Medium|High>",
+  "sentences": [{"text":"<sentence>","label":"<ai|human|mixed>","score":<integer 0-100>}],
+  "paraphrase_suggestions": [<string — one per AI-labeled sentence only, same language as input>]
+}
+
+Rules:
+- label "ai": score 70-100 (highly likely AI-generated)
+- label "mixed": score 40-69 (uncertain)
+- label "human": score 0-39 (likely human-written)
+- perplexity_level: Low=very AI-like, Medium=mixed, High=human-like
+- paraphrase_suggestions: natural academic voice, same language as input text, one entry per AI sentence
+- Split text into individual sentences properly
+
+TEXT:
+${text}`;
+
+  const res = await fetch(ENDPOINT, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: 4096,
+      temperature: 0.1,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if(!res.ok){
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || 'HTTP ' + res.status);
+  }
+
+  const data = await res.json();
+  const raw = (data.choices?.[0]?.message?.content || '').trim();
+  try {
+    return JSON.parse(raw);
+  } catch(_){
+    const m = raw.match(/\{[\s\S]*\}/);
+    if(!m) throw new Error('Cannot parse response');
+    return JSON.parse(m[0]);
+  }
+}
+
+// ── TEKS TAB ANALYZE ───────────────────────────────────────
+async function analyzeTeks(){
+  if(busy) return;
+  const text = document.getElementById('txt-in').value.trim();
+  const wc = text ? text.split(/\s+/).length : 0;
+  if(wc < 50){ alert(t('err-short')); return; }
+  if(wc > 300){ alert(t('err-over')); return; }
+  const apiKey = getKey();
+  if(!apiKey || apiKey.length < 20){ alert(t('err-key')); resetKey(); return; }
+
+  busy = true;
+  document.getElementById('btn-ana-t').disabled = true;
+  document.getElementById('load-t').classList.add('on');
+  document.getElementById('res-t').classList.remove('on');
+
+  try {
+    const parsed = await callGroq(text);
+    const pct = Math.min(100, Math.max(0, parseInt(parsed.ai_probability) || 0));
+    const aiCount = (parsed.sentences || []).filter(s => s.label === 'ai').length;
+    const vd = verdictBadge(pct);
+
+    document.getElementById('load-t').classList.remove('on');
+    document.getElementById('res-t').classList.add('on');
+
+    // Animate gauge
+    const CIRC = 289.03;
+    const gf = document.getElementById('gf-t');
+    setTimeout(() => {
+      gf.style.strokeDashoffset = CIRC - (pct/100)*CIRC;
+      gf.style.stroke = pct >= 70 ? 'var(--er)' : pct >= 40 ? 'var(--wn)' : 'var(--ok)';
+      document.getElementById('gv-t').textContent = pct + '%';
+    }, 60);
+
+    const vbadge = document.getElementById('vb-t');
+    vbadge.textContent = vd.badge; vbadge.className = 'vbadge ' + vd.cls;
+    document.getElementById('vt-t').textContent = vd.title;
+    document.getElementById('vd-t').textContent = vd.desc;
+    document.getElementById('sv-wc-t').textContent = parsed.word_count || wc;
+    document.getElementById('sv-ai-t').textContent = aiCount;
+    document.getElementById('sv-px-t').textContent = parsed.perplexity_level || '—';
+    renderHL(parsed.sentences || [], 'hl-t');
+    renderPara(parsed.sentences || [], parsed.paraphrase_suggestions || [], 'pl-t');
+  } catch(e){
+    document.getElementById('load-t').classList.remove('on');
+    console.error(e);
+    if(e.message === 'invalid_key'){ alert(t('err-key')); resetKey(); }
+    else alert(t('err-api') + '\n' + e.message);
+  }
+
+  busy = false;
+  document.getElementById('btn-ana-t').disabled = false;
+}
+
+// ── MANUSKRIP ANALYZE (per section) ───────────────────────
+async function analyzeManuskrip(){
+  if(busy) return;
+  const apiKey = getKey();
+  if(!apiKey || apiKey.length < 20){ alert(t('err-key')); resetKey(); return; }
+
+  const toAnalyze = SECTIONS_AI.filter(s => sectionMap[s.k]);
+  if(!toAnalyze.length){ alert(t('err-no-sec')); return; }
+
+  busy = true;
+  document.getElementById('btn-ana-m').disabled = true;
+  document.getElementById('report-wrap').classList.remove('on');
+
+  // Build progress UI
+  const progWrap = document.getElementById('prog-wrap');
+  const progList = document.getElementById('prog-list');
+  const progBar  = document.getElementById('prog-bar');
+  const progSum  = document.getElementById('prog-summary');
+  document.getElementById('prog-title').textContent = t('prog-title');
+  progWrap.classList.add('on');
+  progSum.textContent = '';
+  progBar.style.width = '0%';
+
+  progList.innerHTML = toAnalyze.map(s => `
+    <div class="prog-item" id="pi-${s.k}">
+      <div class="prog-icon">${s.icon}</div>
+      <div class="prog-name">${s.nm[lang]}</div>
+      <div class="prog-wc">${sectionMap[s.k].wc.toLocaleString()} ${t('wc-u')}</div>
+      <div class="prog-status" id="ps-${s.k}"><span style="color:var(--tx3)">${t('status-wait')}</span></div>
+    </div>`).join('');
+
+  // Analyze each section sequentially
+  const results = {};
+  let doneCount = 0;
+  let totalAISents = 0;
+  let sumPct = 0;
+
+  for(const sec of toAnalyze){
+    const piEl = document.getElementById('pi-' + sec.k);
+    const psEl = document.getElementById('ps-' + sec.k);
+
+    // Mark active
+    piEl.classList.add('active');
+    psEl.innerHTML = `<div class="prog-spin"></div><span>${t('status-analyzing')}</span>`;
+
+    // Scroll into view
+    piEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    try {
+      // Truncate section text to maxWords for API
+      const sd = sectionMap[sec.k];
+      const words = sd.text.split(/\s+/);
+      const apiText = words.slice(0, sec.maxWords).join(' ');
+
+      const parsed = await callGroq(apiText);
+      const pct = Math.min(100, Math.max(0, parseInt(parsed.ai_probability) || 0));
+      const aiSents = (parsed.sentences || []).filter(s => s.label === 'ai').length;
+
+      results[sec.k] = {
+        section: sec,
+        parsed,
+        pct,
+        aiSents,
+        wc: sd.wc,
+      };
+
+      sumPct += pct;
+      totalAISents += aiSents;
+      doneCount++;
+
+      piEl.classList.remove('active');
+      piEl.classList.add('done');
+      const vd = verdictBadge(pct);
+      psEl.innerHTML = `<span class="vbadge ${vd.cls}" style="padding:2px 8px;font-size:10px">${pct}% · ${vd.badge}</span>`;
+
+    } catch(e){
+      console.error(`Section ${sec.k} error:`, e);
+
+      // Handle rate limit: auto-retry after wait
+      const isRateLimit = e.message && (e.message.includes('Rate limit') || e.message.includes('429') || e.message.includes('TPM'));
+      if(isRateLimit){
+        // Extract wait time from error message if available
+        const waitMatch = e.message.match(/try again in ([\d.]+)s/i);
+        const waitSec = waitMatch ? Math.ceil(parseFloat(waitMatch[1])) + 3 : 30;
+        piEl.classList.remove('active');
+
+        // Countdown retry
+        let rem = waitSec;
+        const retryInterval = setInterval(() => {
+          rem--;
+          psEl.innerHTML = `<span style="color:var(--wn)">${lang==='id'?'Rate limit — retry dalam':'Rate limit — retry in'} ${rem}s</span>`;
+        }, 1000);
+        progSum.textContent = lang === 'id'
+          ? `Rate limit tercapai. Otomatis retry dalam ${waitSec} detik...`
+          : `Rate limit reached. Auto-retrying in ${waitSec} seconds...`;
+        await new Promise(r => setTimeout(r, waitSec * 1000));
+        clearInterval(retryInterval);
+        progSum.textContent = '';
+
+        // Retry once
+        try {
+          piEl.classList.add('active');
+          psEl.innerHTML = `<div class="prog-spin"></div><span>${t('status-analyzing')}</span>`;
+          const sd2 = sectionMap[sec.k];
+          const words2 = sd2.text.split(/\s+/);
+          const apiText2 = words2.slice(0, sec.maxWords).join(' ');
+          const parsed2 = await callGroq(apiText2);
+          const pct2 = Math.min(100, Math.max(0, parseInt(parsed2.ai_probability) || 0));
+          const aiSents2 = (parsed2.sentences || []).filter(s => s.label === 'ai').length;
+          results[sec.k] = { section: sec, parsed: parsed2, pct: pct2, aiSents: aiSents2, wc: sd2.wc };
+          sumPct += pct2; totalAISents += aiSents2; doneCount++;
+          piEl.classList.remove('active'); piEl.classList.add('done');
+          const vd2 = verdictBadge(pct2);
+          psEl.innerHTML = `<span class="vbadge ${vd2.cls}" style="padding:2px 8px;font-size:10px">${pct2}% · ${vd2.badge}</span>`;
+        } catch(e2){
+          results[sec.k] = { section: sec, error: e2.message, pct: 0, aiSents: 0, wc: sectionMap[sec.k].wc };
+          piEl.classList.remove('active'); piEl.classList.add('err');
+          psEl.innerHTML = `<span style="color:var(--er)">${t('status-err')}</span>`;
+        }
+      } else {
+        results[sec.k] = { section: sec, error: e.message, pct: 0, aiSents: 0, wc: sectionMap[sec.k].wc };
+        piEl.classList.remove('active');
+        piEl.classList.add('err');
+        psEl.innerHTML = `<span style="color:var(--er)">${t('status-err')}</span>`;
+        // Key error = stop immediately
+        if(e.message === 'invalid_key' || e.message.includes('401')){
+          alert(t('err-key'));
+          resetKey();
+          break;
+        }
+      }
+    }
+
+    // Update progress bar
+    progBar.style.width = ((doneCount / toAnalyze.length) * 100) + '%';
+
+    // Smart TPM-aware delay between sections
+    if(doneCount < toAnalyze.length){
+      // Estimate tokens used this section (words × 1.4 for prompt overhead)
+      const estTokens = Math.ceil((sectionMap[sec.k].wc || 500) * 1.4);
+      // TPM limit = 12000. At safe 8000 TPM pace, need (estTokens/8000)*60000 ms
+      // Minimum 4 seconds, maximum 25 seconds
+      const waitMs = Math.min(25000, Math.max(4000, Math.ceil((estTokens / 8000) * 60000)));
+      // Show countdown in progress summary
+      let remaining = Math.ceil(waitMs / 1000);
+      const countdownFn = setInterval(() => {
+        remaining--;
+        const nextSec = toAnalyze[doneCount];
+        if(nextSec && remaining > 0){
+          progSum.textContent = lang === 'id'
+            ? `Menunggu ${remaining}s sebelum menganalisis ${nextSec.nm[lang]}...`
+            : `Waiting ${remaining}s before analyzing ${nextSec.nm[lang]}...`;
+        }
+      }, 1000);
+      await new Promise(r => setTimeout(r, waitMs));
+      clearInterval(countdownFn);
+      progSum.textContent = '';
+    }
+  }
+
+  const avgPct = doneCount > 0 ? Math.round(sumPct / doneCount) : 0;
+  const totalWC = SECTIONS_AI.reduce((a, s) => a + (sectionMap[s.k]?.wc || 0), 0);
+  progSum.textContent = lang === 'id'
+    ? `Selesai: ${doneCount}/${toAnalyze.length} section · Rata-rata skor AI: ${avgPct}% · Total kalimat AI: ${totalAISents}`
+    : `Done: ${doneCount}/${toAnalyze.length} sections · Avg AI score: ${avgPct}% · Total AI sentences: ${totalAISents}`;
+
+  // Build report
+  reportData = { results, avgPct, totalWC, totalAISents, doneCount, fileName: document.getElementById('fc-name').textContent };
+  buildReport(reportData);
+
+  busy = false;
+  document.getElementById('btn-ana-m').disabled = false;
+}
+
+// ── BUILD REPORT ───────────────────────────────────────────
+function buildReport(data){
+  const { results, avgPct, totalWC, totalAISents, doneCount, fileName } = data;
+  const now = new Date().toLocaleString(lang === 'id' ? 'id-ID' : 'en-US', {
+    year:'numeric', month:'long', day:'numeric', hour:'2-digit', minute:'2-digit'
+  });
+
+  // Header
+  document.getElementById('rpt-title').textContent = t('rpt-title');
+  document.getElementById('rpt-meta').textContent = fileName + ' · ' + now;
+
+  // Summary grid
+  const avgVd = verdictBadge(avgPct);
+  document.getElementById('rs-grid').innerHTML = `
+    <div class="rs-item">
+      <div class="rs-val ${avgVd.cls === 'er' ? 'c-er' : avgVd.cls === 'wn' ? 'c-wn' : 'c-ok'}">${avgPct}%</div>
+      <div class="rs-lbl">${t('rs-avg-ai')}</div>
+    </div>
+    <div class="rs-item">
+      <div class="rs-val">${totalWC.toLocaleString()}</div>
+      <div class="rs-lbl">${t('rs-total-wc')}</div>
+    </div>
+    <div class="rs-item">
+      <div class="rs-val">${doneCount}</div>
+      <div class="rs-lbl">${t('rs-sections')}</div>
+    </div>
+    <div class="rs-item">
+      <div class="rs-val">${totalAISents}</div>
+      <div class="rs-lbl">${t('rs-ai-sents')}</div>
+    </div>`;
+
+  // Per-section results
+  const container = document.getElementById('sec-results');
+  container.innerHTML = '';
+
+  const secKeys = SECTIONS_AI.map(s => s.k).filter(k => results[k]);
+
+  if(!secKeys.length){
+    container.innerHTML = `<div class="no-section">${t('no-section')}</div>`;
+  } else {
+    secKeys.forEach(k => {
+      const r = results[k];
+      const sec = r.section;
+      const div = document.createElement('div');
+      div.className = 'sec-result';
+
+      if(r.error){
+        div.innerHTML = `<div class="sr-head">
+          <div class="sr-title">${sec.icon} ${sec.nm[lang]}</div>
+        </div>
+        <div style="color:var(--er);font-size:13px">Error: ${r.error}</div>`;
+      } else {
+        const parsed = r.parsed;
+        const pct = r.pct;
+        const vd = verdictBadge(pct);
+        const aiSents = r.aiSents;
+        const hlId  = 'rpt-hl-' + k;
+        const paId  = 'rpt-pa-' + k;
+        const gId   = 'rpt-g-' + k;
+
+        div.innerHTML = `
+          <div class="sr-head">
+            <div class="sr-title">${sec.icon} ${sec.nm[lang]}</div>
+            <div class="sr-meta">
+              <span class="vbadge ${vd.cls}">${vd.badge}</span>
+              <span class="sr-wc">${r.wc.toLocaleString()} ${t('wc-u')}</span>
+            </div>
+          </div>
+          <div class="sr-body">
+            <div class="sr-gauge">${gaugeHTML(pct, gId, 90)}</div>
+            <div class="sr-stats">
+              <div class="sr-stat"><span class="sr-stat-l">${t('sr-wc')}</span><span class="sr-stat-v">${parsed.word_count || r.wc}</span></div>
+              <div class="sr-stat"><span class="sr-stat-l">${t('sr-ai-pct')}</span><span class="sr-stat-v ${vd.cls === 'er' ? 'c-er' : vd.cls === 'wn' ? 'c-wn' : 'c-ok'}">${pct}%</span></div>
+              <div class="sr-stat"><span class="sr-stat-l">${t('sr-perp')}</span><span class="sr-stat-v">${parsed.perplexity_level || '—'}</span></div>
+              <div class="sr-stat"><span class="sr-stat-l">${t('sr-ai-sents')}</span><span class="sr-stat-v">${aiSents}</span></div>
+            </div>
+          </div>
+          <div class="sr-hl">
+            <div class="sr-hl-title">Highlight Analisis</div>
+            <div class="hl-txt" id="${hlId}"></div>
+            <div class="legend" style="margin-top:8px">
+              <div class="leg"><div class="leg-d ai"></div><span>${t('leg-ai')}</span></div>
+              <div class="leg"><div class="leg-d mx"></div><span>${t('leg-mx')}</span></div>
+              <div class="leg"><div class="leg-d ok"></div><span>${t('leg-ok')}</span></div>
+            </div>
+          </div>
+          <div class="sr-para">
+            <div class="sr-para-title">${t('para-sl')}</div>
+            <div class="para-list" id="${paId}"></div>
+          </div>`;
+
+        container.appendChild(div);
+        renderHL(parsed.sentences || [], hlId);
+        renderPara(parsed.sentences || [], parsed.paraphrase_suggestions || [], paId);
+        return; // skip appendChild below
+      }
+
+      container.appendChild(div);
+    });
+  }
+
+  document.getElementById('report-wrap').classList.add('on');
+  document.getElementById('prog-wrap').classList.remove('on');
+
+  // Scroll to report
+  document.getElementById('report-wrap').scrollIntoView({ behavior: 'smooth' });
+}
+
+// ── PRINT ──────────────────────────────────────────────────
+function printReport(){
+  window.print();
+}
+
+// ── WORD COUNT ENGINE ──────────────────────────────────────
+function runWordCount(text){
+  const wc = str => str ? str.trim().split(/\s+/).filter(w => w.length > 0).length : 0;
+
+  let grand = 0;
+  const incRes = SECTIONS_AI.map(s => {
+    const h = WC_HINTS[s.k] || {};
+    const sd = sectionMap[s.k];
+    const c = sd ? wc(sd.text) : 0;
+    if(sd) grand += c;
+    return { ...s, ...h, c, det: !!sd };
+  });
+
+  const exclRes = SECTIONS_EXCL.map(s => {
+    const sd = sectionMap[s.k];
+    const c = sd ? wc(sd.text) : 0;
+    return { ...s, c, det: !!sd };
+  });
+
+  const totalAll  = wc(text);
+  const excTotal  = exclRes.reduce((a,r) => a + r.c, 0);
+
+  document.getElementById('wct-v').textContent = grand.toLocaleString();
+  document.getElementById('wct-s').textContent =
+    `${totalAll.toLocaleString()} ${t('wc-total-lbl')} · ${excTotal.toLocaleString()} ${t('wc-excl-lbl')}`;
+
+  document.getElementById('wc-secs').innerHTML = incRes.map(s => {
+    const pct = grand > 0 ? Math.round((s.c / grand) * 100) : 0;
+    let cls = '', lbl = '';
+    if(s.det && s.min && s.max){
+      if(s.c < s.min){ cls='c-wn'; lbl = lang==='id'?'⚠ Kurang':'⚠ Below'; }
+      else if(s.c > s.max){ cls='c-er'; lbl = lang==='id'?'⚠ Panjang':'⚠ Long'; }
+      else { cls='c-ok'; lbl = lang==='id'?'✓ Ideal':'✓ Ideal'; }
+    }
+    const nd = t('nd');
+    const hint = s.hint ? s.hint[lang] : '';
+    return `<div class="wc-sec">
+      <div class="wcs-ico">${s.icon}</div>
+      <div class="wcs-inf">
+        <div class="wcs-nm">${s.nm[lang]}</div>
+        <div class="wcs-rng">${hint}</div>
+        <div class="wcs-bar"><div class="wcs-bf" style="width:${Math.min(100,pct)}%"></div></div>
+      </div>
+      <div class="wcs-rt">
+        <div class="wcs-v ${cls}">${s.det ? s.c.toLocaleString() : '-'}</div>
+        <div class="wcs-p">${s.det ? pct + '% ' + lbl : nd}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const detExcl = exclRes.filter(s => s.det);
+  document.getElementById('excl-grid').innerHTML = detExcl.length === 0
+    ? `<div class="nd">${t('nd')}</div>`
+    : detExcl.map(s => `<div class="excl-item">
+        <span>${s.icon}</span>
+        <span class="excl-nm">${s.nm[lang]}</span>
+        <span class="excl-v">${s.c.toLocaleString()}</span>
+      </div>`).join('');
+}
+
+// ── INIT ───────────────────────────────────────────────────
+window.addEventListener('load', () => {
+
+  // PDF.js worker (inside load = DOM ready)
+  if(typeof pdfjsLib !== 'undefined'){
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  // Auto-unlock if key exists
+  if(getKey()) document.getElementById('lock').classList.add('gone');
+
+  // Apply language
+  applyLang();
+
+  // Lock screen
+  document.getElementById('lk-btn').addEventListener('click', saveKey);
+  document.getElementById('lk-inp').addEventListener('keydown', e => { if(e.key === 'Enter') saveKey(); });
+  document.getElementById('lk-eye').addEventListener('click', () => {
+    const i = document.getElementById('lk-inp');
+    const e = document.getElementById('lk-eye');
+    i.type = i.type === 'password' ? 'text' : 'password';
+    e.textContent = i.type === 'password' ? '👁' : '🙈';
+  });
+
+  // Settings modal
+  document.getElementById('settings-btn').addEventListener('click', openModal);
+  document.getElementById('mod-reset').addEventListener('click', resetKey);
+  document.getElementById('mod-close').addEventListener('click', closeModal);
+  document.getElementById('modal').addEventListener('click', e => { if(e.target.id === 'modal') closeModal(); });
+
+  // Lang buttons
+  document.querySelectorAll('.lang-btn').forEach(b =>
+    b.addEventListener('click', () => setLang(b.dataset.l)));
+
+  // Main nav
+  document.querySelectorAll('.nav-btn').forEach(b =>
+    b.addEventListener('click', () => switchPanel(b.dataset.panel)));
+
+  // Msk tabs
+  document.querySelectorAll('.msk-tab').forEach(b =>
+    b.addEventListener('click', () => switchMskTab(b.dataset.msk)));
+
+  // Sub tabs (teks result)
+  document.querySelectorAll('.stab').forEach(b =>
+    b.addEventListener('click', () => switchSubTab(b.dataset.mode, b.dataset.tab)));
+
+  // Teks tab
+  document.getElementById('txt-in').addEventListener('input', updateWC);
+  document.getElementById('btn-ana-t').addEventListener('click', analyzeTeks);
+  document.getElementById('btn-clr').addEventListener('click', clearTeks);
+
+  // File upload
+  const zone = document.getElementById('upload-z');
+  const fin  = document.getElementById('file-in');
+  zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('drag'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    zone.classList.remove('drag');
+    if(e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  });
+  fin.addEventListener('change', e => { if(e.target.files[0]) handleFile(e.target.files[0]); });
+  document.getElementById('btn-rm').addEventListener('click', removeFile);
+  document.getElementById('btn-ana-m').addEventListener('click', analyzeManuskrip);
+  document.getElementById('btn-print').addEventListener('click', printReport);
+
+});
+</script>
+</body>
+</html>
